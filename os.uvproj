@@ -412,24 +412,9 @@
               <FilePath>.\src\printf.c</FilePath>
             </File>
             <File>
-              <FileName>printf.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\printf.h</FilePath>
-            </File>
-            <File>
               <FileName>rtx.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\rtx.c</FilePath>
-            </File>
-            <File>
-              <FileName>rtx.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\rtx.h</FilePath>
-            </File>
-            <File>
-              <FileName>stdefs.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\stdefs.h</FilePath>
             </File>
             <File>
               <FileName>uart_polling.c</FileName>
@@ -437,9 +422,9 @@
               <FilePath>.\src\uart_polling.c</FilePath>
             </File>
             <File>
-              <FileName>uart_polling.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\uart_polling.h</FilePath>
+              <FileName>list.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\list\list.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -461,10 +446,15 @@
               <FileType>1</FileType>
               <FilePath>.\src\mem\mem.c</FilePath>
             </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>svc</GroupName>
+          <Files>
             <File>
-              <FileName>mem.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\mem\mem.h</FilePath>
+              <FileName>hal.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\svc\hal.c</FilePath>
             </File>
           </Files>
         </Group>

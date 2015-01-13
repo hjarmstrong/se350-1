@@ -15,7 +15,7 @@ int main() {
 	  init_printf(NULL);
     printf("Hello from printf!\n\r");
     
-    printf("k_request_memory_block: image ends at 0x%x\n", end_addr);
+    //printf("k_request_memory_block: image ends at 0x%x\n", end_addr);
 
     request_memory_block();
     return 0;

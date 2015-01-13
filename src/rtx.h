@@ -6,6 +6,7 @@
 #define RTX_H_
 
 #include "stdefs.h"
+#include "mem/mem.h"
 
 extern int k_release_processor(void);
 #define release_processor() _release_processor((U32)k_release_processor)

@@ -4,14 +4,19 @@
 
 typedef struct MemNode {
     struct MemNode *next;
-    U32 length;
 } MemNode;
 
-MemNode root;
+MemNode *root = START_ADDRESS - sizeof(MemNode);
+
+void k_memory_init() {
+    // This goes into the operating system's stack.
+    root->next = &Image$$RW_IRAM1$$ZI$$Limit;
+}
 
 void* k_request_memory_block(void) {
-    unsigned int end_addr = (unsigned int) &Image$$RW_IRAM1$$ZI$$Limit;
-    printf("k_request_memory_block: image ends at 0x%x\n", end_addr);
+    __disable_irq();
+    for
+    __enable_irq();
     return NULL;
 }
 
