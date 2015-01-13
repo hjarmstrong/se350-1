@@ -1,0 +1,16 @@
+*.__i
+*.axf
+*.bak
+*.crf
+*.d
+*.dep
+*.htm
+*.Inp
+*.lnp
+*.lst
+*.map
+*.o
+*.tra
+*.Vishwas
+os.uvgui.*
+os.plg
