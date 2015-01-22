@@ -1,7 +1,7 @@
 #ifndef STDEFS_H
 #define STDEFS_H
 
-#define NULL (void *)0
+#define NULL ((void *)0)
 
 typedef unsigned int U32;
 
