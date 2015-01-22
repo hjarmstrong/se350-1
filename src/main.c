@@ -5,6 +5,8 @@
 #include "uart_polling.h"
 
 int main() {
+		int i;
+
     SystemInit();
 	  k_memory_init();
 
@@ -15,6 +17,10 @@ int main() {
 	  init_printf(NULL);
     printf("Hello from printf!\n\r");
 
-    request_memory_block();
+		printf("Starting address is 0x%x\n\r", ((void *)(&Image$$RW_IRAM1$$ZI$$Limit)));
+		for (i = 0; i < 100; ++i) {
+				printf("0x%x\n\r", request_memory_block());
+		}
+
     return 0;
 }
