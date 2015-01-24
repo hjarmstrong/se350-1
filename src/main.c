@@ -6,7 +6,9 @@
 #include "uart_polling.h"
 
 int main() {
+		int exit_code;
     int i;
+		void *addr;
 
     SystemInit();
     k_memory_init();
@@ -20,7 +22,13 @@ int main() {
 
     printf("Starting address is 0x%x\n\r", ((void *)(&Image$$RW_IRAM1$$ZI$$Limit)));
     for (i = 0; i < 100; ++i) {
-        printf("0x%x\n\r", request_memory_block());
+				addr = request_memory_block();
+        printf("request_memory_block: 0x%x\n\r", addr);
+
+				if (i % 5 == 0) {
+						exit_code = release_memory_block(addr);
+						printf("Exit code from release_memory_block: %d\n\r", exit_code);
+				}
     }
 
 		run_mem_tests();

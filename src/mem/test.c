@@ -6,14 +6,13 @@
 /**
  * Crashes with error `error` if `condition` is equal to `0`.
  */
-void assert(int condition, const char* error) {
-    int i = 0;
+void assert(int condition, const char *error) {
     if (condition == 0) {
         printf("\n\r########################################\n\r%s\n\r########################################\n\r",
             error);
 
         // try to crash
-        i = i / 0;
+        *((unsigned int*)0) = 0xdeadbeef;
 
         // if we didn't crash for whatever reason, we still shouldn't return
         while(1) {
@@ -43,6 +42,7 @@ void test_add_remove_one(void) {
 
     assert(address_1 == request_memory_block(), "test_add_remove_one FAILED!");
     assert_release_memory_block(address_1);
+		printf("test_add_remove_one PASSED!\n\r");
 }
 
 /**
@@ -73,7 +73,8 @@ void test_add_remove_many_consecutive(void) {
     address_2 = request_memory_block();
     assert_release_memory_block(address_2);
 
-    assert(address_1 == address_2, "test_add_remove FAILED!");
+    assert(address_1 == address_2, "test_add_remove_many_consecutive FAILED!");
+		printf("test_add_remove_many_consecutive PASSED!\n\r");
 }
 
 /**
@@ -99,6 +100,7 @@ void test_add_remove_separating(void) {
     assert_release_memory_block(address_3);
     assert_release_memory_block(address_2);
     assert_release_memory_block(address_1);
+		printf("test_add_remove_separating PASSED!\n\r");
 }
 
 /**
@@ -117,13 +119,14 @@ void test_add_remove_from_front(void) {
     assert_release_memory_block(address_2);
     assert_release_memory_block(address_3);
 
-    assert(request_memory_block() == address_1, "test_add_remove_separating FAILED!");
-    assert(request_memory_block() == address_2, "test_add_remove_separating FAILED!");
-    assert(request_memory_block() == address_3, "test_add_remove_separating FAILED!");
+    assert(request_memory_block() == address_1, "test_add_remove_from_front FAILED!");
+    assert(request_memory_block() == address_2, "test_add_remove_from_front FAILED!");
+    assert(request_memory_block() == address_3, "test_add_remove_from_front FAILED!");
 
     assert_release_memory_block(address_3);
     assert_release_memory_block(address_2);
     assert_release_memory_block(address_1);
+		printf("test_add_remove_from_front PASSED!\n\r");
 }
 
 /**
@@ -163,6 +166,7 @@ void test_add_remove_iterate(void) {
     assert_release_memory_block(address_2);
 
     assert(address_1 == address_2, "test_add_remove_iterate FAILED!");
+		printf("test_add_remove_iterate PASSED!\n\r");
 }
 
 /**
@@ -195,6 +199,7 @@ void test_merge(void) {
     for (i = NUM_BLOCKS - 1; i >= 0; --i) {
         assert_release_memory_block(((char *) address_1) + block_size*i);
     }
+		printf("test_merge PASSED!\n\r");
 }
 
 /**
@@ -207,6 +212,7 @@ void test_release_too_low(void) {
     assert_release_memory_block(address_1);
 
     assert(release_memory_block(address_1) != 0, "test_release_too_low FAILED!");
+		printf("test_release_too_low PASSED!\n\r");
 }
 
 /**
@@ -227,6 +233,7 @@ void test_release_too_high(void) {
 
     assert_release_memory_block(address_1);
     assert_release_memory_block(address_2);
+		printf("test_release_too_high PASSED!\n\r");
 }
 
 void test_release_invalid_offset(void) {
@@ -248,6 +255,7 @@ void test_release_invalid_offset(void) {
 
     assert_release_memory_block(address_1);
     assert_release_memory_block(address_2);
+		printf("test_release_invalid_offset PASSED!\n\r");
 }
 
 void run_mem_tests(void) {

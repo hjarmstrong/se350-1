@@ -42,7 +42,7 @@ void* k_request_memory_block(void) {
 
     if (ptr->next == START_ADDRESS) {
         // add first node
-        mem_blk = ptr->next;
+        mem_blk = ((unsigned char *)ptr->next) + HEADER_SIZE;
 
         // if the last block has only the exact amount of space necessary,
         // this will overwrite a header with an identical one
@@ -53,12 +53,12 @@ void* k_request_memory_block(void) {
     } else if (ptr->next - ptr < BLOCK_SIZE + HEADER_SIZE) {
         // merge nodes
         // block contains two destroyable headers
-        mem_blk = ptr->next;
+        mem_blk = ((unsigned char *)ptr->next) + HEADER_SIZE;
 
         prev->next = ptr->next->next;
     } else {
         // expand a node
-        mem_blk = ptr->next;
+        mem_blk = ((unsigned char *)ptr->next) + HEADER_SIZE;
 
         next_blk = (MemNode *)((unsigned char *)mem_blk + BLOCK_SIZE);
         next_blk->next = ptr->next->next;
@@ -85,6 +85,7 @@ int k_release_memory_block(void* mem_blk) {
         return -2;
     }
     for (ptr = root; ptr->next != START_ADDRESS; prev = ptr, ptr = ptr->next, is_free = !is_free) {
+				// check whether the mem_blk is within the bounds of ptr and ptr->next
         if ((void *)ptr->next <= (void *)((unsigned char *)mem_blk - HEADER_SIZE) && (void *)((unsigned char *)mem_blk + BLOCK_SIZE) <= (void *)ptr) {
             if (is_free) {
                 return -3;
@@ -93,13 +94,13 @@ int k_release_memory_block(void* mem_blk) {
         }
     }
 
-    if (mem_blk == ptr->next + HEADER_SIZE) {
-        if (mem_blk == ptr - BLOCK_SIZE) {
+    if (mem_blk == ((unsigned char *)ptr->next) + HEADER_SIZE) {
+        if (mem_blk == ((unsigned char *)ptr) - BLOCK_SIZE) {
             // complete block
             prev->next = ptr->next;
         } else {
             // at start of block
-            next_blk = ptr->next + BLOCK_SIZE - HEADER_SIZE;
+            next_blk = (MemNode *)(((unsigned char *)ptr->next) + BLOCK_SIZE - HEADER_SIZE);
             if (ptr->next == START_ADDRESS) {
                 next_blk->next = ptr->next;
             } else {
@@ -107,7 +108,7 @@ int k_release_memory_block(void* mem_blk) {
             }
             ptr->next = next_blk;
         }
-    } else if (mem_blk == ptr - BLOCK_SIZE) {
+    } else if (mem_blk == ((unsigned char *)ptr) - BLOCK_SIZE) {
         // at end of block
         next_blk = ptr - BLOCK_SIZE;
         next_blk->next = ptr->next;
@@ -118,7 +119,7 @@ int k_release_memory_block(void* mem_blk) {
         next_blk = mem_blk;
         next_blk->next = ptr->next;
 
-        middle_blk = (MemNode *)((unsigned char *)mem_blk + BLOCK_SIZE - HEADER_SIZE);
+        middle_blk = (MemNode *)(((unsigned char *)mem_blk) + BLOCK_SIZE - HEADER_SIZE);
         middle_blk->next = next_blk;
 
         ptr->next = middle_blk;
