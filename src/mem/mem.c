@@ -34,7 +34,8 @@ void* k_request_memory_block(void) {
 		//}
 
     for (ptr = root; ptr->next != START_ADDRESS; prev = ptr, ptr = ptr->next, is_free = !is_free) {
-        if (is_free == 1 && (ptr->next - ptr) >= (BLOCK_SIZE - 2 * HEADER_SIZE)) {
+				// TODO: BLOCK_SIZE - 2 * HEADER_SIZE ???
+        if (is_free == 1 && (ptr->next - ptr) >= (BLOCK_SIZE - HEADER_SIZE)) {
             break;
         }
     }
@@ -48,7 +49,8 @@ void* k_request_memory_block(void) {
         next_blk = (MemNode *)((unsigned char *)mem_blk + BLOCK_SIZE);
         next_blk->next = ptr->next;
         ptr->next = next_blk;
-    } else if (ptr->next - ptr < BLOCK_SIZE) {
+		// TODO: remove HEADER_SIZE ???
+    } else if (ptr->next - ptr < BLOCK_SIZE + HEADER_SIZE) {
         // merge nodes
         // block contains two destroyable headers
         mem_blk = ptr->next;
