@@ -245,14 +245,14 @@ void test_release_invalid_offset(void) {
     address_1 = request_memory_block();
     address_2 = request_memory_block();
 
-    block_size = ((char *) address_1) - ((char *) address_2);
+    block_size = ((char *) address_2) - ((char *) address_1);
 
-    assert(release_memory_block(((char *) address_1) + 1), "test_release_invalid_offset FAILED!");
-    assert(release_memory_block(((char *) address_1) + 4), "test_release_invalid_offset FAILED!");
-    assert(release_memory_block(((char *) address_1) + block_size/2), "test_release_invalid_offset FAILED!");
-    assert(release_memory_block(((char *) address_2) - 1), "test_release_invalid_offset FAILED!");
-    assert(release_memory_block(((char *) address_2) - 4), "test_release_invalid_offset FAILED!");
-    assert(release_memory_block(((char *) address_2) - block_size/2), "test_release_invalid_offset FAILED!");
+    assert(release_memory_block(((char *) address_1) + 1), "test_release_invalid_offset (1) FAILED!");
+    assert(release_memory_block(((char *) address_1) + 4), "test_release_invalid_offset (2) FAILED!");
+    assert(release_memory_block(((char *) address_1) + block_size/2), "test_release_invalid_offset (3) FAILED!");
+    assert(release_memory_block(((char *) address_2) - 1), "test_release_invalid_offset (4) FAILED!");
+    assert(release_memory_block(((char *) address_2) - 4), "test_release_invalid_offset (5) FAILED!");
+    assert(release_memory_block(((char *) address_2) - block_size/2), "test_release_invalid_offset (6) FAILED!");
 
     assert_release_memory_block(address_1);
     assert_release_memory_block(address_2);

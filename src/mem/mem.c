@@ -76,6 +76,7 @@ void* k_request_memory_block(void) {
 
 int k_release_memory_block(void* mem_blk) {
     int is_free = 1;
+		int offset = 0;
     MemNode *middle_blk = NULL;
     MemNode *next_blk = NULL;
     MemNode *prev = NULL;
@@ -83,7 +84,8 @@ int k_release_memory_block(void* mem_blk) {
 
     __disable_irq();
 
-    if ((U32)mem_blk % 4 != 0) {
+		offset = ((U32)mem_blk) - ((U32)START_ADDRESS + HEADER_SIZE);
+    if (offset % BLOCK_SIZE != 0) {
 				// unaligned exception
 				__enable_irq();
         return -1;
