@@ -75,11 +75,11 @@ int k_release_memory_block(void* mem_blk) {
     if ((U32)mem_blk % 4 != 0) {
         return -1;
     }
-    if (START_ADDRESS > mem_blk || mem_blk + BLOCK_SIZE > (void *)LAST_ADDRESS) {
+    if (START_ADDRESS > mem_blk || (void *)((unsigned char *)mem_blk + BLOCK_SIZE) > (void *)LAST_ADDRESS) {
         return -2;
     }
     for (ptr = root; ptr->next != START_ADDRESS; prev = ptr, ptr = ptr->next, is_free = !is_free) {
-        if ((void *)ptr->next <= mem_blk - HEADER_SIZE && mem_blk + BLOCK_SIZE <= (void *)ptr) {
+        if ((void *)ptr->next <= (void *)((unsigned char *)mem_blk - HEADER_SIZE) && (void *)((unsigned char *)mem_blk + BLOCK_SIZE) <= (void *)ptr) {
             if (is_free) {
                 return -3;
             }
@@ -112,7 +112,7 @@ int k_release_memory_block(void* mem_blk) {
         next_blk = mem_blk;
         next_blk->next = ptr->next;
 
-        middle_blk = mem_blk + BLOCK_SIZE - HEADER_SIZE;
+        middle_blk = (MemNode *)((unsigned char *)mem_blk + BLOCK_SIZE - HEADER_SIZE);
         middle_blk->next = next_blk;
 
         ptr->next = middle_blk;

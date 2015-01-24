@@ -421,11 +421,6 @@
               <FileType>1</FileType>
               <FilePath>.\src\uart_polling.c</FilePath>
             </File>
-            <File>
-              <FileName>list.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\list\list.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
