@@ -43,7 +43,6 @@ void test_add_remove_one(void) {
     assert(address_1 == request_memory_block(), "test_add_remove_one FAILED!");
     assert_release_memory_block(address_1);
 		printf("test_add_remove_one PASSED!\n\r");
-		printf("%d\n\r", NUM_BLOCKS);
 }
 
 /**
@@ -158,7 +157,8 @@ void test_add_remove_iterate(void) {
     assert_release_memory_block(((char *) address_1) + block_size);
 
     assert(request_memory_block() == address_1, "test_add_remove_iterate FAILED!");
-
+		assert_release_memory_block(address_1);
+		
     for (i = NUM_BLOCKS - 1; i >= 2; --i) {
         assert_release_memory_block(((char *) address_1) + block_size*i);
     }

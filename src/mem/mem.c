@@ -31,7 +31,7 @@ void* k_request_memory_block(void) {
 				// TODO: BLOCK_SIZE - 2 * HEADER_SIZE ???
         if (is_free == 1) {
 						free_size = ((unsigned char *)ptr) - ((unsigned char *)ptr->next);
-						if (free_size >= BLOCK_SIZE + HEADER_SIZE) {
+						if (free_size >= BLOCK_SIZE - 2 * HEADER_SIZE) {
 								break;
 						}
         }
