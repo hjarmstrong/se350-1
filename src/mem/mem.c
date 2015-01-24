@@ -84,20 +84,32 @@ int k_release_memory_block(void* mem_blk) {
     __disable_irq();
 
     if ((U32)mem_blk % 4 != 0) {
+				// unaligned exception
+				__enable_irq();
         return -1;
     }
     if (START_ADDRESS > mem_blk || (void *)((unsigned char *)mem_blk + BLOCK_SIZE) > (void *)LAST_ADDRESS) {
-        return -2;
+        // out of memory bounds exceptions
+				__enable_irq();
+				return -2;
     }
     for (ptr = root; ptr != START_ADDRESS; prev = ptr, ptr = ptr->next, is_free = !is_free) {
 				// check whether the mem_blk is within the bounds of ptr and ptr->next
-        if ((void *)ptr->next <= (void *)((unsigned char *)mem_blk - HEADER_SIZE) && (void *)((unsigned char *)mem_blk + BLOCK_SIZE) <= (void *)ptr) {
+        if ((((void *)ptr->next) <= ((void *)((unsigned char *)mem_blk))) && ((void *)(((unsigned char *)mem_blk) + BLOCK_SIZE) <= ((void *)ptr))) {
             if (is_free) {
+								// freeing unallocated memory
+								__enable_irq();
                 return -3;
             }
             break;
         }
     }
+		if (ptr == START_ADDRESS) {
+				// This should never happen
+				printf("ERROR: ptr was set to START_ADDRESS\n\r");
+				__enable_irq();
+				return -4;
+		}
 
     if (mem_blk == ((unsigned char *)ptr->next) + HEADER_SIZE) {
         if (mem_blk == ((unsigned char *)ptr) - BLOCK_SIZE) {

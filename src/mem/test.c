@@ -212,7 +212,7 @@ void test_release_too_low(void) {
     address_1 = request_memory_block();
     assert_release_memory_block(address_1);
 
-    assert(release_memory_block(address_1) != 0, "test_release_too_low FAILED!");
+    assert(release_memory_block(address_1) == -3, "test_release_too_low FAILED!");
 		printf("test_release_too_low PASSED!\n\r");
 }
 
@@ -227,11 +227,11 @@ void test_release_too_high(void) {
     address_1 = request_memory_block();
     address_2 = request_memory_block();
 
-    block_size = ((char *) address_1) - ((char *) address_2);
+		block_size = ((char *) address_2) - ((char *) address_1);
 
-    assert(release_memory_block(((char *) address_1) + block_size * 3), "test_release_too_high FAILED!");
-    assert(release_memory_block(((char *) address_1) + block_size * 2), "test_release_too_high FAILED!");
-
+		assert(release_memory_block(((char *) address_1) + block_size * 3) == -3, "test_release_too_high FAILED!");
+    assert(release_memory_block(((char *) address_1) + block_size * 2) == -3, "test_release_too_high FAILED!");
+    
     assert_release_memory_block(address_1);
     assert_release_memory_block(address_2);
 		printf("test_release_too_high PASSED!\n\r");
