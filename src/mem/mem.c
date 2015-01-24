@@ -33,7 +33,7 @@ void* k_request_memory_block(void) {
 		//		return NULL;
 		//}
 
-    for (ptr = root; ptr->next != START_ADDRESS; prev = ptr, ptr = ptr->next, is_free = !is_free) {
+    for (ptr = root; ptr != START_ADDRESS; prev = ptr, ptr = ptr->next, is_free = !is_free) {
 				// TODO: BLOCK_SIZE - 2 * HEADER_SIZE ???
         if (is_free == 1 && (ptr->next - ptr) >= (BLOCK_SIZE - HEADER_SIZE)) {
             break;
@@ -58,7 +58,7 @@ void* k_request_memory_block(void) {
         prev->next = ptr->next->next;
     } else {
         // expand a node
-        mem_blk = ((unsigned char *)ptr->next) + HEADER_SIZE;
+        mem_blk = ptr->next;
 
         next_blk = (MemNode *)((unsigned char *)mem_blk + BLOCK_SIZE);
         next_blk->next = ptr->next->next;
@@ -84,7 +84,7 @@ int k_release_memory_block(void* mem_blk) {
     if (START_ADDRESS > mem_blk || (void *)((unsigned char *)mem_blk + BLOCK_SIZE) > (void *)LAST_ADDRESS) {
         return -2;
     }
-    for (ptr = root; ptr->next != START_ADDRESS; prev = ptr, ptr = ptr->next, is_free = !is_free) {
+    for (ptr = root; ptr != START_ADDRESS; prev = ptr, ptr = ptr->next, is_free = !is_free) {
 				// check whether the mem_blk is within the bounds of ptr and ptr->next
         if ((void *)ptr->next <= (void *)((unsigned char *)mem_blk - HEADER_SIZE) && (void *)((unsigned char *)mem_blk + BLOCK_SIZE) <= (void *)ptr) {
             if (is_free) {
@@ -97,31 +97,44 @@ int k_release_memory_block(void* mem_blk) {
     if (mem_blk == ((unsigned char *)ptr->next) + HEADER_SIZE) {
         if (mem_blk == ((unsigned char *)ptr) - BLOCK_SIZE) {
             // complete block
-            prev->next = ptr->next;
+						if (ptr->next == START_ADDRESS) {
+								// block at start of allocatable memory
+								prev->next = ptr->next;
+						} else {
+								// anywhere else
+							  // this should completely remove the entire block
+							  // and force the pointers to skip it
+								prev->next = ptr->next->next;
+						}
         } else {
             // at start of block
-            next_blk = (MemNode *)(((unsigned char *)ptr->next) + BLOCK_SIZE - HEADER_SIZE);
-            if (ptr->next == START_ADDRESS) {
-                next_blk->next = ptr->next;
-            } else {
-                next_blk->next = ptr->next->next;
-            }
+            next_blk = (MemNode *)(((unsigned char *)ptr->next) + BLOCK_SIZE);
+						if (ptr->next == START_ADDRESS) {
+								// block at start of allocatable memory
+								next_blk->next = ptr->next;
+						} else {
+								// block is anywhere else
+								next_blk->next = ptr->next->next;
+						}
             ptr->next = next_blk;
         }
     } else if (mem_blk == ((unsigned char *)ptr) - BLOCK_SIZE) {
         // at end of block
-        next_blk = ptr - BLOCK_SIZE;
+        next_blk = (MemNode *)(((unsigned char *)ptr) - BLOCK_SIZE);
         next_blk->next = ptr->next;
         prev->next = next_blk;
     } else {
         // in middle of block
         // TODO: additional validation; check that address is aligned
-        next_blk = mem_blk;
+				// allocated left of removed
+				next_blk = mem_blk;
         next_blk->next = ptr->next;
 
+				// non-allocated (removed block)
         middle_blk = (MemNode *)(((unsigned char *)mem_blk) + BLOCK_SIZE - HEADER_SIZE);
         middle_blk->next = next_blk;
 
+				// start of allocated chain
         ptr->next = middle_blk;
     }
 

@@ -441,6 +441,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\mem\mem.c</FilePath>
             </File>
+            <File>
+              <FileName>test.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\mem\test.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

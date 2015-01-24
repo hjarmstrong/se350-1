@@ -20,16 +20,17 @@ int main() {
     init_printf(NULL);
     printf("Hello from printf!\n\r");
 
-    printf("Starting address is 0x%x\n\r", ((void *)(&Image$$RW_IRAM1$$ZI$$Limit)));
-    for (i = 0; i < 100; ++i) {
-				addr = request_memory_block();
-        printf("request_memory_block: 0x%x\n\r", addr);
+		// TODO: make this into a real test case
+    //printf("Starting address is 0x%x\n\r", ((void *)(&Image$$RW_IRAM1$$ZI$$Limit)));
+    //for (i = 0; i < 100; ++i) {
+		//		addr = request_memory_block();
+    //    printf("request_memory_block: 0x%x\n\r", addr);
 
-				if (i % 5 == 0) {
-						exit_code = release_memory_block(addr);
-						printf("Exit code from release_memory_block: %d\n\r", exit_code);
-				}
-    }
+		//		if (i % 5 == 0) {
+		//				exit_code = release_memory_block(addr);
+		//				printf("Exit code from release_memory_block: %d\n\r", exit_code);
+		//		}
+    //}
 
 		run_mem_tests();
 		

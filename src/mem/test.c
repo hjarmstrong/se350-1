@@ -93,9 +93,9 @@ void test_add_remove_separating(void) {
     assert_release_memory_block(address_1);
     assert_release_memory_block(address_3);
 
-    assert(request_memory_block() == address_1, "test_add_remove_separating FAILED!");
-    assert(request_memory_block() == address_2, "test_add_remove_separating FAILED!");
-    assert(request_memory_block() == address_3, "test_add_remove_separating FAILED!");
+    assert(request_memory_block() == address_1, "test_add_remove_separating (1) FAILED!");
+    assert(request_memory_block() == address_2, "test_add_remove_separating (2) FAILED!");
+    assert(request_memory_block() == address_3, "test_add_remove_separating (3) FAILED!");
 
     assert_release_memory_block(address_3);
     assert_release_memory_block(address_2);
@@ -119,9 +119,9 @@ void test_add_remove_from_front(void) {
     assert_release_memory_block(address_2);
     assert_release_memory_block(address_3);
 
-    assert(request_memory_block() == address_1, "test_add_remove_from_front FAILED!");
-    assert(request_memory_block() == address_2, "test_add_remove_from_front FAILED!");
-    assert(request_memory_block() == address_3, "test_add_remove_from_front FAILED!");
+    assert(request_memory_block() == address_1, "test_add_remove_from_front (1) FAILED!");
+    assert(request_memory_block() == address_2, "test_add_remove_from_front (2) FAILED!");
+    assert(request_memory_block() == address_3, "test_add_remove_from_front (3) FAILED!");
 
     assert_release_memory_block(address_3);
     assert_release_memory_block(address_2);
