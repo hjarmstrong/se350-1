@@ -23,7 +23,7 @@ os: $(OBJECTS)
 
 
 src/mem/mem.o: src/mem/mem.c src/mem/mem.h src/printf.h src/stdefs.h
-src/mem/test.o: src/mem/test.c src/mem/mem.c src/mem/mem.h src/printf.h src/stdefs.h
+src/mem/test.o: src/mem/test.c src/mem/test.h src/mem/mem.c src/mem/mem.h src/printf.h src/stdefs.h
 src/main.o: src/main.c src/mem/mem.h src/printf.h src/stdefs.h src/uart_polling.h
 src/printf.o: src/printf.c src/printf.h src/uart_polling.h
 src/uart_polling.o: src/uart_polling.c src/uart_polling.h

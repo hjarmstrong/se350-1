@@ -28,9 +28,13 @@ void* k_request_memory_block(void) {
         // put PCB on blocked_resource_q ;
         // set process state to BLOCKED_ON_RESOURCE ;
         // release_processor ( ) ;
+		//if ((void *)((unsigned char *)root - HEADER_SIZE) == (void *)root->next && root->next->next == START_ADDRESS) {
+		//	  __enable_irq();
+		//		return NULL;
+		//}
 
     for (ptr = root; ptr->next != START_ADDRESS; prev = ptr, ptr = ptr->next, is_free = !is_free) {
-        if (is_free == 1 && (ptr->next - ptr >= (long)(BLOCK_SIZE - 2 * HEADER_SIZE))) {
+        if (is_free == 1 && (ptr->next - ptr) >= (BLOCK_SIZE - 2 * HEADER_SIZE)) {
             break;
         }
     }

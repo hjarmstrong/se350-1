@@ -1,5 +1,6 @@
 #include <LPC17xx.h>
 #include "mem/mem.h"
+#include "mem/test.h"
 #include "printf.h"
 #include "stdefs.h"
 #include "uart_polling.h"
@@ -22,5 +23,7 @@ int main() {
         printf("0x%x\n\r", request_memory_block());
     }
 
+		run_mem_tests();
+		
     return 0;
 }

@@ -249,3 +249,15 @@ void test_release_invalid_offset(void) {
     assert_release_memory_block(address_1);
     assert_release_memory_block(address_2);
 }
+
+void run_mem_tests(void) {
+		test_add_remove_one();
+		test_add_remove_many_consecutive();
+		test_add_remove_separating();
+	  test_add_remove_from_front();
+		test_add_remove_iterate();
+		test_merge();
+		test_release_too_low();
+		test_release_too_high();
+		test_release_invalid_offset();
+}
