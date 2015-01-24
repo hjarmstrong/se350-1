@@ -1,6 +1,6 @@
 CC_FLAGS=-g -Wall -Wextra -std=c90
 
-MEM=src/mem/mem.o
+MEM=src/mem/mem.o src/mem/test.o
 SVC=src/svc/hal.o
 SRC=$(MEM) $(SVC) src/main.o src/printf.o src/uart_polling.o
 SYS=sys/system_LPC17xx.o
@@ -23,6 +23,7 @@ os: $(OBJECTS)
 
 
 src/mem/mem.o: src/mem/mem.c src/mem/mem.h src/printf.h src/stdefs.h
+src/mem/test.o: src/mem/test.c src/mem/mem.c src/mem/mem.h src/printf.h src/stdefs.h
 src/main.o: src/main.c src/mem/mem.h src/printf.h src/stdefs.h src/uart_polling.h
 src/printf.o: src/printf.c src/printf.h src/uart_polling.h
 src/uart_polling.o: src/uart_polling.c src/uart_polling.h
