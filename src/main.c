@@ -6,9 +6,9 @@
 #include "uart_polling.h"
 
 int main() {
-		int exit_code;
-    int i;
-		void *addr;
+		//int exit_code;
+    //int i;
+		//void *addr;
 
     SystemInit();
     k_memory_init();
