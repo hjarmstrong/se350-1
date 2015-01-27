@@ -5,6 +5,8 @@
 
 extern void k_memory_init(void);
 
+U32 *alloc_stack(U32 size_b) 
+
 extern void *k_request_memory_block(void);
 #define request_memory_block() _request_memory_block((U32)k_request_memory_block)
 extern void *_request_memory_block(U32 p_func) __SVC_0;
@@ -22,5 +24,8 @@ typedef struct MemNode {
 #define START_ADDRESS ((void *)(&Image$$RW_IRAM1$$ZI$$Limit))
 #define LAST_ADDRESS 0x10007FFF
 #define BLOCK_SIZE 0x80
+
+extern void *heap_high_address;
+extern void *heap_low_address;
 
 #endif // MEM_H

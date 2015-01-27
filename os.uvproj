@@ -347,7 +347,7 @@
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
             <VariousControls>
-              <MiscControls></MiscControls>
+              <MiscControls>--c99</MiscControls>
               <Define></Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
@@ -455,6 +455,21 @@
               <FileName>hal.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\svc\hal.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>proc</GroupName>
+          <Files>
+            <File>
+              <FileName>process.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\proc\process.c</FilePath>
+            </File>
+            <File>
+              <FileName>user_process.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\proc\user_process.c</FilePath>
             </File>
           </Files>
         </Group>
