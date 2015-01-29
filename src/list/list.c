@@ -8,12 +8,12 @@
 typedef struct ListNode {
     struct ListNode *next;
     struct ListNode *prev;
-    short count;
+    unsigned char count;
     /*--- data goes from here up to here + BLOCK_SIZE ---*/
 } ListNode;
 
-// Maximum number of elements in node_size
-#define NODE_SIZE ((int)(BLOCK_SIZE/sizeof(void *) - sizeof(ListNode)/sizeof(void *)))
+// Maximum number of elements in ListNode
+#define NODE_SIZE ((int)((BLOCK_SIZE - sizeof(ListNode)) / sizeof(void *)))
 
 // Gives the address of the 0th element in p_node
 #define NODE_START(p_node) ((void **) (((char *)p_node) + sizeof(ListNode)))
@@ -51,6 +51,7 @@ void list_push(List *list, void *data) {
     if (!list->last) {
         list->first = list->last = list_node_new();
     }
+
     if (list->last->count == NODE_SIZE) {
         ListNode *new_node = list_node_new();
 
@@ -87,7 +88,7 @@ void list_pop(List *list) {
  */
 void *list_back(List *list) {
     ListNode *last = list->last;
-    return NODE_START(list->last)[list->last->count - 1];
+    return NODE_START(last)[last->count - 1];
 }
 
 
@@ -103,7 +104,6 @@ void list_unshift(List *list, void *data) {
  */
 void list_shift(List *list) {
     ListNode *first = list->first;
-    void *data = NODE_START(first)[0];
 
     --first->count;
 
@@ -116,6 +116,7 @@ void list_shift(List *list) {
             list->first = NULL;
             list->last = NULL;
         } else {
+            // there must exist at least two elements, thus first->next is not NULL
             first->next->prev = NULL;
             list->first = first->next;
         }
@@ -140,17 +141,19 @@ int list_empty(List *list) {
 
 /**
  * Returns the number of elements in the segment with first element start_of_data.
+ * UNTESTED
  */
 int list_segment_size(void *start_of_data) {
-    ListNode *node = start_of_data - NODE_SIZE;
+    ListNode *node = (ListNode *)(((U32 *)start_of_data) - NODE_SIZE);
     return node->count;
 }
 
 /**
  * Returns the start of the next segment given the first element in a segment, or NULL if
  * no such next segment exists.
+ * UNTESTED
  */
 void *list_next_segment(void *start_of_data) {
-    ListNode *node = start_of_data - NODE_SIZE;
+    ListNode *node = (ListNode *)(((U32 *)start_of_data) - NODE_SIZE);
     return node->next ? node->next + NODE_SIZE : NULL;
 }

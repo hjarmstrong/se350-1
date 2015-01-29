@@ -8,7 +8,7 @@ typedef struct List {
     struct ListNode *last;
 } List;
 
-List list_new();
+List list_new(void);
 
 void list_push(List *, void *data);
 void list_pop(List *);
