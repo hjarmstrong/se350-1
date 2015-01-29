@@ -16,7 +16,7 @@ typedef struct ListNode {
 #define NODE_SIZE ((int)((BLOCK_SIZE - sizeof(ListNode)) / sizeof(void *)))
 
 // Gives the address of the 0th element in p_node
-#define NODE_START(p_node) ((void **) (((char *)p_node) + sizeof(ListNode)))
+#define NODE_START(p_node) ((void **)(((unsigned char *)p_node) + sizeof(ListNode)))
 
 /**
  * Creates a new linked list node with size BLOCK_SIZE with NODE_SIZE elements
