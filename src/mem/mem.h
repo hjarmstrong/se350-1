@@ -5,7 +5,7 @@
 
 extern void k_memory_init(void);
 
-U32 *alloc_stack(U32 size_b) 
+U32 *alloc_stack(U32 size_b);
 
 extern void *k_request_memory_block(void);
 #define request_memory_block() _request_memory_block((U32)k_request_memory_block)

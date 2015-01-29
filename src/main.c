@@ -2,16 +2,19 @@
 #include "mem/mem.h"
 #include "mem/test.h"
 #include "printf.h"
+#include "proc/process.h"
 #include "stdefs.h"
 #include "uart_polling.h"
 
 int main() {
-		//int exit_code;
+	//int exit_code;
     //int i;
-		//void *addr;
+	//void *addr;
 
     SystemInit();
     k_memory_init();
+    process_init();
+    queue_init();
 
     uart0_init();
     uart0_put_string("------------\n\r");

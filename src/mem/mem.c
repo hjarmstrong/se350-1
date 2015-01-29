@@ -1,7 +1,6 @@
 #include "mem.h"
 #include "../printf.h"
 #include "../proc/process.h"
-#include <LPC17xx.h>
 
 MemNode *root = (void *)(LAST_ADDRESS - HEADER_SIZE);
 
@@ -47,7 +46,7 @@ U32 *alloc_stack(U32 size_b)
 	sp = gp_stack; /* gp_stack is always 8 bytes aligned */
 	
 	/* update gp_stack */
-	gp_stack = (U32 *)((U8 *)sp - size_b);
+	gp_stack = (U32 *)((char *)sp - size_b);
 	
 	/* 8 bytes alignement adjustment to exception stack frame */
 	if ((U32)gp_stack & 0x04) {

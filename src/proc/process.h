@@ -2,10 +2,14 @@
 #define PROCESS_H
 
 #include "../stdefs.h"
+#include "sys_process.h"
+#include "user_process.h"
 
-#define NUM_PROCS 1
+#define NUM_PROCS (1 + NUM_TEST_PROCS)
 
-#define PROC_1 &null_proc
+/* 5 priorities plus blocking methods
+   blocked methods: out of memory */
+#define NUM_QUEUES (5 + 1)
 
 /* 512 / 4 == 128. => 512 Bytes per stack */
 #define STACK_SIZE ((U32)128)
@@ -24,23 +28,33 @@ typedef struct PCB {
 	PROC_STATE state;
 } PCB;
 
-typedef struct PROC_CTX
-{	
+typedef struct PROC_INIT {
 	int m_pid;
 	int m_priority;
-	int m_stack_size;       /* size of stack in words */
-	void (*m_pc) ();  
-} PROC_CTX;
+	int m_stack_size;
+	void (*mpf_start_pc) ();  
+} PROC_INIT;
 
-//PCB **pcb_ptrs;
 extern PCB **gp_pcbs;
 
 extern U32 *gp_stack;
 
-extern PROC_CTX g_proc_table[NUM_PROCS];
+extern PROC_INIT g_proc_table[NUM_PROCS];
 
-/* User Processes */
+extern void (*fcn_ptrs[NUM_PROCS]) ();
 
-void null_proc(void);
+int set_process_priority(int process_id, int priority);
+int get_process_priority(int process_id);
 
-#endif
+int process_switch(PCB *p_pcb_old);
+
+void process_init(void);
+void queue_init(void);
+
+extern int k_release_processor(void);
+#define release_processor() _release_processor((U32)k_release_processor)
+extern int __SVC_0 _release_processor(U32 p_func);
+
+PCB *scheduler(void);
+
+#endif // PROCESS_H

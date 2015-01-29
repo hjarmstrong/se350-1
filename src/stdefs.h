@@ -1,6 +1,8 @@
 #ifndef STDEFS_H
 #define STDEFS_H
 
+#include <system_LPC17xx.h>
+
 #define NULL ((void *)0)
 
 typedef unsigned int U32;
