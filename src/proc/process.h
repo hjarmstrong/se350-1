@@ -14,25 +14,25 @@
 /* 512 / 4 == 128. => 512 Bytes per stack */
 #define STACK_SIZE ((U32)128)
 
-#define INITIAL_xPSR 0x01000000  
+#define INITIAL_xPSR 0x01000000
 
 typedef enum PROC_STATE {
     READY,
-	RUNNING,
+    RUNNING,
     BLOCKED
 } PROC_STATE;
 
 typedef struct PCB {
     U32 pid;
-	void *sp;
-	PROC_STATE state;
+    void *sp;
+    PROC_STATE state;
 } PCB;
 
 typedef struct PROC_INIT {
-	int m_pid;
-	int m_priority;
-	int m_stack_size;
-	void (*mpf_start_pc) ();  
+    int m_pid;
+    int m_priority;
+    int m_stack_size;
+    void (*mpf_start_pc) ();
 } PROC_INIT;
 
 extern PCB **gp_pcbs;
@@ -40,8 +40,6 @@ extern PCB **gp_pcbs;
 extern U32 *gp_stack;
 
 extern PROC_INIT g_proc_table[NUM_PROCS];
-
-extern void (*fcn_ptrs[NUM_PROCS]) ();
 
 int set_process_priority(int process_id, int priority);
 int get_process_priority(int process_id);

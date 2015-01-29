@@ -10,7 +10,6 @@ U32 *gp_stack;
 PROC_INIT g_proc_table[NUM_PROCS];
 PCB *gp_current_process = NULL;
 List g_queues[NUM_QUEUES];
-void (*fcn_ptrs[NUM_PROCS]) ();
 
 void process_init() {
     PCB *new_proc;
@@ -41,61 +40,61 @@ void process_init() {
 
         list_push(&g_queues[g_proc_table[i].m_priority], new_proc);
 
-		sp = alloc_stack((g_proc_table[i]).m_stack_size);
-		*(--sp) = INITIAL_xPSR;      // user process initial xPSR  
-		*(--sp) = (U32)((g_proc_table[i]).mpf_start_pc); // PC contains the entry point of the process
-		for (int j = 0; j < 6; j++ ) { // R0-R3, R12(interprocess scratch register), R14(Link Register) are cleared with 0
-			*(--sp) = 0x0;
-		}
+        sp = alloc_stack((g_proc_table[i]).m_stack_size);
+        *(--sp) = INITIAL_xPSR;      // user process initial xPSR
+        *(--sp) = (U32)((g_proc_table[i]).mpf_start_pc); // PC contains the entry point of the process
+        for (int j = 0; j < 6; j++ ) { // R0-R3, R12(interprocess scratch register), R14(Link Register) are cleared with 0
+            *(--sp) = 0x0;
+        }
         new_proc->sp = sp;
-	}
+    }
 
     heap_high_address = gp_stack;
 }
 
 void queue_init(void) {
-	gp_current_process->state = RUNNING;
-	__set_MSP((U32) gp_current_process->sp);
-	__rte();  // pop exception stack frame from the stack for a new processes
+    gp_current_process->state = RUNNING;
+    __set_MSP((U32) gp_current_process->sp);
+    __rte();  // pop exception stack frame from the stack for a new processes
 }
 
 int process_switch(PCB *p_pcb_old) {
-	PROC_STATE state;
+    PROC_STATE state;
 
-	if (gp_current_process != p_pcb_old) {
+    if (gp_current_process != p_pcb_old) {
         state = gp_current_process->state;
-		if (state == READY) {
-			p_pcb_old->state = READY; 
-			p_pcb_old->sp = (U32 *) __get_MSP(); // save the old process's sp
-			gp_current_process->state = RUNNING;
-			__set_MSP((U32) gp_current_process->sp); //switch to the new proc's stack    
-		} else {
-			gp_current_process = p_pcb_old; // revert back to the old proc on error
-			return -1;
-		} 
-	}
+        if (state == READY) {
+            p_pcb_old->state = READY;
+            p_pcb_old->sp = (U32 *) __get_MSP(); // save the old process's sp
+            gp_current_process->state = RUNNING;
+            __set_MSP((U32) gp_current_process->sp); //switch to the new proc's stack
+        } else {
+            gp_current_process = p_pcb_old; // revert back to the old proc on error
+            return -1;
+        }
+    }
 
-	return 0;
+    return 0;
 }
 
 int k_release_processor(void) {
     PCB *p_pcb_old = NULL;
 
-	p_pcb_old = gp_current_process;
-	gp_current_process = scheduler();
+    p_pcb_old = gp_current_process;
+    gp_current_process = scheduler();
 
-	if (gp_current_process == NULL) {
-		gp_current_process = p_pcb_old; // revert back to the old process
-		return -1;
-	}
+    if (gp_current_process == NULL) {
+        gp_current_process = p_pcb_old; // revert back to the old process
+        return -1;
+    }
 
     if (p_pcb_old == NULL) {
-		p_pcb_old = gp_current_process;
-	}
+        p_pcb_old = gp_current_process;
+    }
 
     list_push(&g_queues[get_process_priority(p_pcb_old->pid)], p_pcb_old);
 
-	return process_switch(p_pcb_old);
+    return process_switch(p_pcb_old);
 }
 
 int set_process_priority(int process_id, int priority) {

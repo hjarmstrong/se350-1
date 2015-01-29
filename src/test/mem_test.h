@@ -1,5 +1,5 @@
-#ifndef TEST_H
-#define TEST_H
+#ifndef MEM_TEST_H
+#define MEM_TEST_H
 
 void test_add_remove_one(void);
 void test_add_remove_many_consecutive(void);
@@ -13,4 +13,4 @@ void test_release_invalid_offset(void);
 
 void run_mem_tests(void);
 
-#endif // TEST_H
+#endif // MEM_TEST_H
