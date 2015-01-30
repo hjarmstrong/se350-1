@@ -19,8 +19,8 @@ void test_one_item() {
 
     list_push(&l, item);
 
-    assert(list_front(&l) == 4, "test_one_item (1) FAILED!\n\r");
-    assert(list_back(&l) == 4, "test_one_item (2) FAILED!\n\r");
+    assert(list_front(&l) == (void *)4, "test_one_item (1) FAILED!\n\r");
+    assert(list_back(&l) == (void *)4, "test_one_item (2) FAILED!\n\r");
     assert(!list_empty(&l), "test_one_item (3) FAILED!\n\r");
 
     list_pop(&l);

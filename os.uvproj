@@ -412,11 +412,6 @@
               <FilePath>.\src\printf.c</FilePath>
             </File>
             <File>
-              <FileName>rtx.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\rtx.c</FilePath>
-            </File>
-            <File>
               <FileName>uart_polling.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\uart_polling.c</FilePath>
@@ -470,6 +465,21 @@
               <FileName>user_process.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\proc\user_process.c</FilePath>
+            </File>
+            <File>
+              <FileName>sys_process.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\proc\sys_process.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>list</GroupName>
+          <Files>
+            <File>
+              <FileName>list.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\list\list.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -1,4 +1,5 @@
 #include "test.h"
+#include "../printf.h"
 
 /**
  * Crashes with error `error` if `condition` is equal to `0`.

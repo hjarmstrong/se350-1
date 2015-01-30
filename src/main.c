@@ -11,12 +11,13 @@
 
 int main() {
     SystemInit();
-    k_memory_init();
-    process_init();
-    queue_init();
 
     uart0_init();
     init_printf(NULL);
+
+    k_memory_init();
+    process_init();
+    queue_init();
 
     run_list_tests();
     run_mem_tests();
