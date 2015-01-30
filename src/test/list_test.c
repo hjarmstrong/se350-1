@@ -1,6 +1,5 @@
-#include <stdio.h>
-#include <stdlib.h>
 #include "../list/list.h"
+#include "../printf.h"
 
 #include "test.h"
 
