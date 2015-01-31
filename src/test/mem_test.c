@@ -46,14 +46,14 @@ void test_add_remove_many_consecutive(void) {
             address_1 = request_memory_block();
         } else if (i == 1) {
             address_2 = request_memory_block();
-            block_size = ((char *) address_2) - ((char *) address_1);
+            block_size = ((U8 *) address_2) - ((U8 *) address_1);
         } else {
             address_2 = request_memory_block();
-            assert(address_2 == ((char *) address_1) + block_size*i, "expected consecutive blocks");
+            assert(address_2 == ((U8 *) address_1) + block_size*i, "expected consecutive blocks");
         }
     }
     for (i = NUM_BLOCKS - 1; i >= 0; --i) {
-        assert_release_memory_block(((char *) address_1) + block_size*i);
+        assert_release_memory_block(((U8 *) address_1) + block_size*i);
     }
 
     address_2 = request_memory_block();
@@ -132,21 +132,21 @@ void test_add_remove_iterate(void) {
             address_1 = request_memory_block();
         } else if (i == 1) {
             address_2 = request_memory_block();
-            block_size = ((char *) address_2) - ((char *) address_1);
+            block_size = ((U8 *) address_2) - ((U8 *) address_1);
         } else {
             address_2 = request_memory_block();
-            assert(address_2 == ((char *) address_1) + block_size*i, "expected consecutive blocks");
+            assert(address_2 == ((U8 *) address_1) + block_size*i, "expected consecutive blocks");
         }
     }
 
     assert_release_memory_block(address_1);
-    assert_release_memory_block(((char *) address_1) + block_size);
+    assert_release_memory_block(((U8 *) address_1) + block_size);
 
     assert(request_memory_block() == address_1, "test_add_remove_iterate FAILED!");
         assert_release_memory_block(address_1);
 
     for (i = NUM_BLOCKS - 1; i >= 2; --i) {
-        assert_release_memory_block(((char *) address_1) + block_size*i);
+        assert_release_memory_block(((U8 *) address_1) + block_size*i);
     }
 
     address_2 = request_memory_block();
@@ -173,18 +173,18 @@ void test_merge(void) {
             address_1 = request_memory_block();
         } else if (i == 1) {
             address_2 = request_memory_block();
-            block_size = ((char *) address_2) - ((char *) address_1);
+            block_size = ((U8 *) address_2) - ((U8 *) address_1);
         } else {
             address_2 = request_memory_block();
-            assert(address_2 == ((char *) address_1) + block_size*i, "expected consecutive blocks");
+            assert(address_2 == ((U8 *) address_1) + block_size*i, "expected consecutive blocks");
         }
     }
 
-    assert_release_memory_block(((char *) address_1) + block_size*40);
-    assert(request_memory_block() == ((char *) address_1) + block_size*40, "test_merge FAILED!");
+    assert_release_memory_block(((U8 *) address_1) + block_size*40);
+    assert(request_memory_block() == ((U8 *) address_1) + block_size*40, "test_merge FAILED!");
 
     for (i = NUM_BLOCKS - 1; i >= 0; --i) {
-        assert_release_memory_block(((char *) address_1) + block_size*i);
+        assert_release_memory_block(((U8 *) address_1) + block_size*i);
     }
     printf("test_merge PASSED!\n\r");
 }
@@ -213,10 +213,10 @@ void test_release_too_high(void) {
     address_1 = request_memory_block();
     address_2 = request_memory_block();
 
-        block_size = ((char *) address_2) - ((char *) address_1);
+        block_size = ((U8 *) address_2) - ((U8 *) address_1);
 
-        assert(release_memory_block(((char *) address_1) + block_size * 3) == -3, "test_release_too_high FAILED!");
-    assert(release_memory_block(((char *) address_1) + block_size * 2) == -3, "test_release_too_high FAILED!");
+        assert(release_memory_block(((U8 *) address_1) + block_size * 3) == -3, "test_release_too_high FAILED!");
+    assert(release_memory_block(((U8 *) address_1) + block_size * 2) == -3, "test_release_too_high FAILED!");
 
     assert_release_memory_block(address_1);
     assert_release_memory_block(address_2);
@@ -231,14 +231,14 @@ void test_release_invalid_offset(void) {
     address_1 = request_memory_block();
     address_2 = request_memory_block();
 
-    block_size = ((char *) address_2) - ((char *) address_1);
+    block_size = ((U8 *) address_2) - ((U8 *) address_1);
 
-    assert(release_memory_block(((char *) address_1) + 1), "test_release_invalid_offset (1) FAILED!");
-    assert(release_memory_block(((char *) address_1) + 4), "test_release_invalid_offset (2) FAILED!");
-    assert(release_memory_block(((char *) address_1) + block_size/2), "test_release_invalid_offset (3) FAILED!");
-    assert(release_memory_block(((char *) address_2) - 1), "test_release_invalid_offset (4) FAILED!");
-    assert(release_memory_block(((char *) address_2) - 4), "test_release_invalid_offset (5) FAILED!");
-    assert(release_memory_block(((char *) address_2) - block_size/2), "test_release_invalid_offset (6) FAILED!");
+    assert(release_memory_block(((U8 *) address_1) + 1), "test_release_invalid_offset (1) FAILED!");
+    assert(release_memory_block(((U8 *) address_1) + 4), "test_release_invalid_offset (2) FAILED!");
+    assert(release_memory_block(((U8 *) address_1) + block_size/2), "test_release_invalid_offset (3) FAILED!");
+    assert(release_memory_block(((U8 *) address_2) - 1), "test_release_invalid_offset (4) FAILED!");
+    assert(release_memory_block(((U8 *) address_2) - 4), "test_release_invalid_offset (5) FAILED!");
+    assert(release_memory_block(((U8 *) address_2) - block_size/2), "test_release_invalid_offset (6) FAILED!");
 
     assert_release_memory_block(address_1);
     assert_release_memory_block(address_2);

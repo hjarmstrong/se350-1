@@ -1,21 +1,32 @@
 #include "../list/list.h"
 #include "mem.h"
-#include "../printf.h"
 #include "../proc/process.h"
+#include "../proc/scheduler.h"
+#include "../stdefs.h"
+
+#ifdef DEBUG
+    #include "../printf.h"
+#endif // DEBUG
 
 MemNode *root;
 
 void *heap_high_address;
 void *heap_low_address;
 
+/**
+ * Allocate space for system variables, set up heap_low_address, set
+ * up initial stack pointer
+ *
+ * Must be called before k_alloc_stack(...)
+ */
 void k_memory_init(void) {
-    char *p_end = (char *)&Image$$RW_IRAM1$$ZI$$Limit;
+    /* Allocate space for system variables, set up heap_low_address */
+    U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 
     /* 4 bytes padding */
-    // Can remove later if necissary.
     p_end += 4;
 
-    /* allocate memory for pcb pointers   */
+    /* Allocate PCB pointers */
     gp_pcbs = (PCB **)p_end;
     p_end += NUM_PROCS * sizeof(PCB *);
 
@@ -24,27 +35,26 @@ void k_memory_init(void) {
         p_end += sizeof(PCB);
     }
 
-		/* allocate memory for list management */
-		// TODO: make this dynamic
-		p_end += LIST_MEMORY_SIZE;
+    /* Allocate List management memory */
+    // TODO: make this dynamic
+    p_end += LIST_MEMORY_SIZE;
 
-    /* Set up Heap building address */
     heap_low_address = p_end;
 
-    /* prepare for alloc_stack() to allocate memory for stacks */
+
+    /* Set up stack pointer, pre-requisite for k_alloc_stack(...) */
     gp_stack = (U32 *)0x10008000;
     if ((U32)gp_stack & 0x04) { /* 8 bytes alignment */
         --gp_stack;
     }
 }
 
-U32 *alloc_stack(U32 size_b)
-{
+U32 *k_alloc_stack(U32 size_b) {
     U32 *sp;
     sp = gp_stack; /* gp_stack is always 8 bytes aligned */
 
     /* update gp_stack */
-    gp_stack = (U32 *)((char *)sp - size_b);
+    gp_stack = (U32 *)((U8 *)sp - size_b);
 
     /* 8 bytes alignement adjustment to exception stack frame */
     if ((U32)gp_stack & 0x04) {
@@ -64,27 +74,24 @@ void* k_request_memory_block(void) {
     MemNode *ptr = NULL;
 	  
 		if (!is_init) {
-				root = (void *)(((unsigned char *)heap_high_address) - HEADER_SIZE);
+				root = (void *)(((U8 *)heap_high_address) - HEADER_SIZE);
 				root->next = heap_low_address;
 				is_init = 1;
 		}
 
     //__disable_irq();
 
-    while (((unsigned char *)root) - ((unsigned char *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
-				// TODO: this seems to be adding gp_current_process to priority queue
-			  // 0, which may or may not have anything to do with that being
-			  // its original queue
-				list_push(&g_queues[PRIORITY_BLOCKED_ON_MEMORY], gp_current_process);
-				gp_current_process->state = BLOCKED;
-				//__enable_irq();
-				k_release_processor();
+    while (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
+        gp_current_process->state = BLOCKED;
+        k_enqueue_process(gp_current_process->pid);
+
+        //__enable_irq();
+        k_release_processor();
     }
 
     for (ptr = root; ptr != heap_low_address; prev = ptr, ptr = ptr->next, is_free = !is_free) {
-        // TODO: BLOCK_SIZE - 2 * HEADER_SIZE ???
         if (is_free == 1) {
-            free_size = ((unsigned char *)ptr) - ((unsigned char *)ptr->next);
+            free_size = ((U8 *)ptr) - ((U8 *)ptr->next);
             if (free_size >= BLOCK_SIZE - 2 * HEADER_SIZE) {
                     break;
             }
@@ -93,18 +100,17 @@ void* k_request_memory_block(void) {
 
     if (ptr->next == heap_low_address) {
         // add first node
-        mem_blk = ((unsigned char *)ptr->next) + HEADER_SIZE;
+        mem_blk = ((U8 *)ptr->next) + HEADER_SIZE;
 
         // if the last block has only the exact amount of space necessary,
         // this will overwrite a header with an identical one
-        next_blk = (MemNode *)((unsigned char *)mem_blk + BLOCK_SIZE);
+        next_blk = (MemNode *)((U8 *)mem_blk + BLOCK_SIZE);
         next_blk->next = ptr->next;
         ptr->next = next_blk;
-        // TODO: remove HEADER_SIZE ???
     } else if (ptr->next - ptr < BLOCK_SIZE + HEADER_SIZE) {
         // merge nodes
         // block contains two destroyable headers
-        mem_blk = ((unsigned char *)ptr->next) + HEADER_SIZE;
+        mem_blk = ((U8 *)ptr->next) + HEADER_SIZE;
 
         if (ptr->next == heap_low_address) {
             prev->next = ptr->next;
@@ -115,7 +121,7 @@ void* k_request_memory_block(void) {
         // expand a node
         mem_blk = ptr->next;
 
-        next_blk = (MemNode *)((unsigned char *)mem_blk + BLOCK_SIZE);
+        next_blk = (MemNode *)((U8 *)mem_blk + BLOCK_SIZE);
         if (ptr->next == heap_low_address) {
             next_blk->next = ptr->next;
         } else {
@@ -135,41 +141,38 @@ int k_release_memory_block(void* mem_blk) {
     MemNode *next_blk = NULL;
     MemNode *prev = NULL;
     MemNode *ptr = NULL;
-		PCB *process = NULL;
 
     //__disable_irq();
 
     offset = ((U32)mem_blk) - ((U32)heap_low_address + HEADER_SIZE);
     if (offset % BLOCK_SIZE != 0) {
-        // unaligned exception
         //__enable_irq();
-        return -1;
+        return RTX_ERROR_MEMORY_UNALIGNED;
     }
-    if (heap_low_address > mem_blk || (void *)((unsigned char *)mem_blk + BLOCK_SIZE) > (void *)heap_high_address) {
-        // out of memory bounds exceptions
+    if (heap_low_address > mem_blk || (void *)((U8 *)mem_blk + BLOCK_SIZE) > (void *)heap_high_address) {
         //__enable_irq();
-        return -2;
+        return RTX_ERROR_MEMORY_OUT_OF_BOUNDS;
     }
     for (ptr = root; ptr != heap_low_address; prev = ptr, ptr = ptr->next, is_free = !is_free) {
         // check whether the mem_blk is within the bounds of ptr and ptr->next
-        if ((((void *)ptr->next) <= ((void *)((unsigned char *)mem_blk))) && ((void *)(((unsigned char *)mem_blk) + BLOCK_SIZE) <= ((void *)ptr))) {
+        if ((((void *)ptr->next) <= ((void *)((U8 *)mem_blk))) && ((void *)(((U8 *)mem_blk) + BLOCK_SIZE) <= ((void *)ptr))) {
             if (is_free) {
-                // freeing unallocated memory
                 //__enable_irq();
-                return -3;
+                return RTX_ERROR_MEMORY_FREEING_UNALLOCATED;
             }
             break;
         }
     }
     if (ptr == heap_low_address) {
-        // This should never happen
+#ifdef DEBUG
         printf("ERROR: ptr was set to heap_low_address\n\r");
+#endif // DEBUG
         //__enable_irq();
-        return -4;
+        return RTX_ERROR;
     }
 
-    if (mem_blk == ((unsigned char *)ptr->next) + HEADER_SIZE) {
-        if (mem_blk == ((unsigned char *)ptr) - BLOCK_SIZE) {
+    if (mem_blk == ((U8 *)ptr->next) + HEADER_SIZE) {
+        if (mem_blk == ((U8 *)ptr) - BLOCK_SIZE) {
             // complete block
                 if (ptr->next == heap_low_address) {
                     // block at start of allocatable memory
@@ -182,7 +185,7 @@ int k_release_memory_block(void* mem_blk) {
                 }
         } else {
             // at start of block
-            next_blk = (MemNode *)(((unsigned char *)ptr->next) + BLOCK_SIZE);
+            next_blk = (MemNode *)(((U8 *)ptr->next) + BLOCK_SIZE);
             if (ptr->next == heap_low_address) {
                 // block at start of allocatable memory
                 next_blk->next = ptr->next;
@@ -192,36 +195,33 @@ int k_release_memory_block(void* mem_blk) {
             }
             ptr->next = next_blk;
         }
-    } else if (mem_blk == ((unsigned char *)ptr) - BLOCK_SIZE) {
+    } else if (mem_blk == ((U8 *)ptr) - BLOCK_SIZE) {
         // at end of block
-        next_blk = (MemNode *)(((unsigned char *)ptr) - BLOCK_SIZE);
+        next_blk = (MemNode *)(((U8 *)ptr) - BLOCK_SIZE);
         next_blk->next = ptr->next;
         prev->next = next_blk;
     } else {
+        // TODO: additional validation
+        // We should verify that the address to-be-freed is an address
+        // we have allocated rather than an address within a block
+
         // in middle of block
-        // TODO: additional validation; check that address is aligned
         // allocated left of removed
         next_blk = mem_blk;
         next_blk->next = ptr->next;
 
         // non-allocated (removed block)
-        middle_blk = (MemNode *)(((unsigned char *)mem_blk) + BLOCK_SIZE - HEADER_SIZE);
+        middle_blk = (MemNode *)(((U8 *)mem_blk) + BLOCK_SIZE - HEADER_SIZE);
         middle_blk->next = next_blk;
 
         // start of allocated chain
         ptr->next = middle_blk;
     }
 
-		while (!list_empty(&g_queues[PRIORITY_BLOCKED_ON_MEMORY])) {
-				process = list_front(&g_queues[PRIORITY_BLOCKED_ON_MEMORY]);
-        list_shift(&g_queues[PRIORITY_BLOCKED_ON_MEMORY]);
-				process->state = READY;
-
-			  list_push(&g_queues[get_process_priority(process->pid)], process);
-		}
+    k_unblock_queue(PRIORITY_BLOCKED_ON_MEMORY);
 
     //__enable_irq();
 
 		release_processor();
-    return 0;
+    return RTX_OK;
 }

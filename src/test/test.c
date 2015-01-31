@@ -1,10 +1,11 @@
-#include "test.h"
 #include "../printf.h"
+#include "../stdefs.h"
+#include "test.h"
 
 /**
  * Crashes with error `error` if `condition` is equal to `0`.
  */
-void assert(int condition, const char *error) {
+void assert(int condition, const U8 *error) {
     if (condition == 0) {
         printf("\n\r########################################\n\r%s\n\r########################################\n\r",
             error);
