@@ -1,6 +1,7 @@
 #include "../list/list.h"
 #include "mem.h"
 #include "../proc/process.h"
+#include "../proc/scheduler.h"
 #include "../stdefs.h"
 
 #ifdef DEBUG
@@ -12,13 +13,20 @@ MemNode *root;
 void *heap_high_address;
 void *heap_low_address;
 
+/**
+ * Allocate space for system variables, set up heap_low_address, set
+ * up initial stack pointer
+ *
+ * Must be called before k_alloc_stack(...)
+ */
 void k_memory_init(void) {
+    /* Allocate space for system variables, set up heap_low_address */
     U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 
     /* 4 bytes padding */
     p_end += 4;
 
-    /* allocate memory for pcb pointers   */
+    /* Allocate PCB pointers */
     gp_pcbs = (PCB **)p_end;
     p_end += NUM_PROCS * sizeof(PCB *);
 
@@ -27,14 +35,14 @@ void k_memory_init(void) {
         p_end += sizeof(PCB);
     }
 
-		/* allocate memory for list management */
-		// TODO: make this dynamic
-		p_end += LIST_MEMORY_SIZE;
+    /* Allocate List management memory */
+    // TODO: make this dynamic
+    p_end += LIST_MEMORY_SIZE;
 
-    /* Set up Heap building address */
     heap_low_address = p_end;
 
-    /* prepare for k_alloc_stack() to allocate memory for stacks */
+
+    /* Set up stack pointer, pre-requisite for k_alloc_stack(...) */
     gp_stack = (U32 *)0x10008000;
     if ((U32)gp_stack & 0x04) { /* 8 bytes alignment */
         --gp_stack;
@@ -74,13 +82,11 @@ void* k_request_memory_block(void) {
     //__disable_irq();
 
     while (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
-				// TODO: this seems to be adding gp_current_process to priority queue
-			  // 0, which may or may not have anything to do with that being
-			  // its original queue
-				list_push(&g_queues[PRIORITY_BLOCKED_ON_MEMORY], gp_current_process);
-				gp_current_process->state = BLOCKED;
-				//__enable_irq();
-				k_release_processor();
+        gp_current_process->state = BLOCKED;
+        k_enqueue_process(gp_current_process->pid);
+
+        //__enable_irq();
+        k_release_processor();
     }
 
     for (ptr = root; ptr != heap_low_address; prev = ptr, ptr = ptr->next, is_free = !is_free) {
@@ -135,7 +141,6 @@ int k_release_memory_block(void* mem_blk) {
     MemNode *next_blk = NULL;
     MemNode *prev = NULL;
     MemNode *ptr = NULL;
-		PCB *process = NULL;
 
     //__disable_irq();
 
@@ -213,13 +218,7 @@ int k_release_memory_block(void* mem_blk) {
         ptr->next = middle_blk;
     }
 
-		while (!list_empty(&g_queues[PRIORITY_BLOCKED_ON_MEMORY])) {
-				process = list_front(&g_queues[PRIORITY_BLOCKED_ON_MEMORY]);
-        list_shift(&g_queues[PRIORITY_BLOCKED_ON_MEMORY]);
-				process->state = READY;
-
-			  list_push(&g_queues[get_process_priority(process->pid)], process);
-		}
+    k_unblock_queue(PRIORITY_BLOCKED_ON_MEMORY);
 
     //__enable_irq();
 

@@ -2,6 +2,7 @@
 
 #include "mem/mem.h"
 #include "proc/process.h"
+#include "proc/scheduler.h"
 #include "stdefs.h"
 #include "uart_polling.h"
 
@@ -21,13 +22,14 @@ int main() {
 #endif // DEBUG
 
     memory_init();
-		list_init();
-		process_init();
+    list_init();
+    process_init();
+    scheduler_init();
 
 #ifdef DEBUG
-    // These need to be refactored since calling release_processor() from
-    // these functions (ie. when they use memory management) causes a hard
-    // fault
+    // TODO: These need to be refactored since calling release_processor()
+    // from these functions (ie. when they use memory management) causes a
+    // hard fault
     //run_list_tests();
     //run_mem_tests();
 #endif // DEBUG

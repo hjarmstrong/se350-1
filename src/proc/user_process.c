@@ -1,4 +1,5 @@
 #include "../mem/mem.h"
+#include "scheduler.h"
 #include "../uart_polling.h"
 #include "user_process.h"
 

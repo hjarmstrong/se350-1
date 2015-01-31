@@ -1,6 +1,7 @@
 #include "list.h"
 #include "../mem/mem.h"
 #include "../proc/process.h"
+#include "../proc/scheduler.h"
 #include "../stdefs.h"
 
 /**
