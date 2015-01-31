@@ -6,7 +6,7 @@ void k_scheduler_init() {
     // Add all processes to ready queues
     for (int i = 0; i < NUM_PROCS; ++i) {
         k_enqueue_process(g_proc_table[i].m_pid);
-		} 
+    } 
 }
 
 int k_enqueue_process(int process_id) {
@@ -24,7 +24,7 @@ int k_enqueue_process(int process_id) {
                     return RTX_OK;
                 default:
                     return RTX_ERROR_SCHEDULER_UNDEFINED_STATE;
-						}
+            }
         }
     }
 
@@ -38,7 +38,7 @@ int k_unblock_queue(int blocked_queue) {
         return RTX_ERROR_SCHEDULER_UNBLOCKING_NON_BLOCK_QUEUE;
     }
 
-		while (!list_empty(&g_queues[blocked_queue])) {
+    while (!list_empty(&g_queues[blocked_queue])) {
         process = list_front(&g_queues[blocked_queue]);
         list_shift(&g_queues[blocked_queue]);
 
