@@ -1,13 +1,20 @@
-#define NUM_TEST_PROCS 6
-
 #ifndef USER_PROCESS_H
 #define USER_PROCESS_H
 
+// must be defined before process.h
+#define NUM_TEST_PROCS 6
+
 #include "process.h"
+
+/* Global Variables */
 
 extern struct PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
+/* User Process Methods  */
+
 void set_test_procs(void);
+
+/* User Processes */
 
 void proc_1(void);
 void proc_2(void);

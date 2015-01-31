@@ -9,7 +9,7 @@ void *heap_high_address;
 void *heap_low_address;
 
 void k_memory_init(void) {
-    char *p_end = (char *)&Image$$RW_IRAM1$$ZI$$Limit;
+    U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 
     /* 4 bytes padding */
     // Can remove later if necissary.
@@ -38,13 +38,12 @@ void k_memory_init(void) {
     }
 }
 
-U32 *alloc_stack(U32 size_b)
-{
+U32 *alloc_stack(U32 size_b) {
     U32 *sp;
     sp = gp_stack; /* gp_stack is always 8 bytes aligned */
 
     /* update gp_stack */
-    gp_stack = (U32 *)((char *)sp - size_b);
+    gp_stack = (U32 *)((U8 *)sp - size_b);
 
     /* 8 bytes alignement adjustment to exception stack frame */
     if ((U32)gp_stack & 0x04) {
@@ -64,14 +63,14 @@ void* k_request_memory_block(void) {
     MemNode *ptr = NULL;
 	  
 		if (!is_init) {
-				root = (void *)(((unsigned char *)heap_high_address) - HEADER_SIZE);
+				root = (void *)(((U8 *)heap_high_address) - HEADER_SIZE);
 				root->next = heap_low_address;
 				is_init = 1;
 		}
 
     //__disable_irq();
 
-    while (((unsigned char *)root) - ((unsigned char *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
+    while (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
 				// TODO: this seems to be adding gp_current_process to priority queue
 			  // 0, which may or may not have anything to do with that being
 			  // its original queue
@@ -84,7 +83,7 @@ void* k_request_memory_block(void) {
     for (ptr = root; ptr != heap_low_address; prev = ptr, ptr = ptr->next, is_free = !is_free) {
         // TODO: BLOCK_SIZE - 2 * HEADER_SIZE ???
         if (is_free == 1) {
-            free_size = ((unsigned char *)ptr) - ((unsigned char *)ptr->next);
+            free_size = ((U8 *)ptr) - ((U8 *)ptr->next);
             if (free_size >= BLOCK_SIZE - 2 * HEADER_SIZE) {
                     break;
             }
@@ -93,18 +92,18 @@ void* k_request_memory_block(void) {
 
     if (ptr->next == heap_low_address) {
         // add first node
-        mem_blk = ((unsigned char *)ptr->next) + HEADER_SIZE;
+        mem_blk = ((U8 *)ptr->next) + HEADER_SIZE;
 
         // if the last block has only the exact amount of space necessary,
         // this will overwrite a header with an identical one
-        next_blk = (MemNode *)((unsigned char *)mem_blk + BLOCK_SIZE);
+        next_blk = (MemNode *)((U8 *)mem_blk + BLOCK_SIZE);
         next_blk->next = ptr->next;
         ptr->next = next_blk;
         // TODO: remove HEADER_SIZE ???
     } else if (ptr->next - ptr < BLOCK_SIZE + HEADER_SIZE) {
         // merge nodes
         // block contains two destroyable headers
-        mem_blk = ((unsigned char *)ptr->next) + HEADER_SIZE;
+        mem_blk = ((U8 *)ptr->next) + HEADER_SIZE;
 
         if (ptr->next == heap_low_address) {
             prev->next = ptr->next;
@@ -115,7 +114,7 @@ void* k_request_memory_block(void) {
         // expand a node
         mem_blk = ptr->next;
 
-        next_blk = (MemNode *)((unsigned char *)mem_blk + BLOCK_SIZE);
+        next_blk = (MemNode *)((U8 *)mem_blk + BLOCK_SIZE);
         if (ptr->next == heap_low_address) {
             next_blk->next = ptr->next;
         } else {
@@ -145,14 +144,14 @@ int k_release_memory_block(void* mem_blk) {
         //__enable_irq();
         return -1;
     }
-    if (heap_low_address > mem_blk || (void *)((unsigned char *)mem_blk + BLOCK_SIZE) > (void *)heap_high_address) {
+    if (heap_low_address > mem_blk || (void *)((U8 *)mem_blk + BLOCK_SIZE) > (void *)heap_high_address) {
         // out of memory bounds exceptions
         //__enable_irq();
         return -2;
     }
     for (ptr = root; ptr != heap_low_address; prev = ptr, ptr = ptr->next, is_free = !is_free) {
         // check whether the mem_blk is within the bounds of ptr and ptr->next
-        if ((((void *)ptr->next) <= ((void *)((unsigned char *)mem_blk))) && ((void *)(((unsigned char *)mem_blk) + BLOCK_SIZE) <= ((void *)ptr))) {
+        if ((((void *)ptr->next) <= ((void *)((U8 *)mem_blk))) && ((void *)(((U8 *)mem_blk) + BLOCK_SIZE) <= ((void *)ptr))) {
             if (is_free) {
                 // freeing unallocated memory
                 //__enable_irq();
@@ -168,8 +167,8 @@ int k_release_memory_block(void* mem_blk) {
         return -4;
     }
 
-    if (mem_blk == ((unsigned char *)ptr->next) + HEADER_SIZE) {
-        if (mem_blk == ((unsigned char *)ptr) - BLOCK_SIZE) {
+    if (mem_blk == ((U8 *)ptr->next) + HEADER_SIZE) {
+        if (mem_blk == ((U8 *)ptr) - BLOCK_SIZE) {
             // complete block
                 if (ptr->next == heap_low_address) {
                     // block at start of allocatable memory
@@ -182,7 +181,7 @@ int k_release_memory_block(void* mem_blk) {
                 }
         } else {
             // at start of block
-            next_blk = (MemNode *)(((unsigned char *)ptr->next) + BLOCK_SIZE);
+            next_blk = (MemNode *)(((U8 *)ptr->next) + BLOCK_SIZE);
             if (ptr->next == heap_low_address) {
                 // block at start of allocatable memory
                 next_blk->next = ptr->next;
@@ -192,9 +191,9 @@ int k_release_memory_block(void* mem_blk) {
             }
             ptr->next = next_blk;
         }
-    } else if (mem_blk == ((unsigned char *)ptr) - BLOCK_SIZE) {
+    } else if (mem_blk == ((U8 *)ptr) - BLOCK_SIZE) {
         // at end of block
-        next_blk = (MemNode *)(((unsigned char *)ptr) - BLOCK_SIZE);
+        next_blk = (MemNode *)(((U8 *)ptr) - BLOCK_SIZE);
         next_blk->next = ptr->next;
         prev->next = next_blk;
     } else {
@@ -205,7 +204,7 @@ int k_release_memory_block(void* mem_blk) {
         next_blk->next = ptr->next;
 
         // non-allocated (removed block)
-        middle_blk = (MemNode *)(((unsigned char *)mem_blk) + BLOCK_SIZE - HEADER_SIZE);
+        middle_blk = (MemNode *)(((U8 *)mem_blk) + BLOCK_SIZE - HEADER_SIZE);
         middle_blk->next = next_blk;
 
         // start of allocated chain

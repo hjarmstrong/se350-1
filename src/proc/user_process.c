@@ -15,7 +15,7 @@ void set_test_procs() {
     for (int i = 0; i < NUM_TEST_PROCS; ++i) {
         g_test_procs[i].m_pid = i + 1;
         g_test_procs[i].m_stack_size = STACK_SIZE;
-        g_test_procs[i].m_priority = 0;
+        g_test_procs[i].m_priority = PRIORITY_HIGHEST;
     }
 }
 

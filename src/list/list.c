@@ -1,35 +1,36 @@
 #include "list.h"
 #include "../mem/mem.h"
 #include "../proc/process.h"
+#include "../stdefs.h"
 
 /**
  * Represents a linked list node with NODE_SIZE elements.
- * To be punned as the start of a block returned by request_memory_block(...).
  */
 typedef struct ListNode {
     struct ListNode *next;
     struct ListNode *prev;
-    unsigned char count;
+    U8 count;
     /*--- data goes from here up to here + LIST_NODE_SIZE ---*/
 } ListNode;
 
+// Size of each ListNode
 #define LIST_NODE_SIZE (LIST_MEMORY_SIZE / NUM_QUEUES)
 
 // Maximum number of elements in ListNode
 #define NODE_SIZE ((int)((LIST_NODE_SIZE - sizeof(ListNode)) / sizeof(void *)))
 
 // Gives the address of the 0th element in p_node
-#define NODE_START(p_node) ((void **)(((unsigned char *)p_node) + sizeof(ListNode)))
+#define NODE_START(p_node) ((void **)(((U8 *)p_node) + sizeof(ListNode)))
 
 void *list_mem_ptr = NULL;
 
 ListNode *request_list_node(void) {
 		if (list_mem_ptr == NULL) {
-				list_mem_ptr = ((void *)(((unsigned char *)heap_low_address) - LIST_MEMORY_SIZE));
+				list_mem_ptr = ((void *)(((U8 *)heap_low_address) - LIST_MEMORY_SIZE));
 		}
 
 		ListNode *block = list_mem_ptr;
-		list_mem_ptr = ((unsigned char *)list_mem_ptr) + LIST_NODE_SIZE;
+		list_mem_ptr = ((U8 *)list_mem_ptr) + LIST_NODE_SIZE;
 		return block;
 }
 
@@ -49,9 +50,10 @@ void initialize_list_nodes() {
 
 /**
  * Creates a new linked list node with size LIST_NODE_SIZE with NODE_SIZE elements
- * starting at NODE_START.
+ * starting at NODE_START. This node is pulled from list_nodes, which holds a pre-
+ * defined set of useable list_nodes.
  *
- * The caller must free this node by calling release_memory_block(...).
+ * The caller must free this node by calling release_list_node(...).
  */
 ListNode *list_node_new() {
 		ListNode *node;
@@ -69,7 +71,7 @@ ListNode *list_node_new() {
 				}
 		}
 
-		// TODO: this should never happen
+		// Out-of-memory
 		return NULL;
 }
 
@@ -81,6 +83,12 @@ void release_list_node(ListNode *node) {
 				}
 		}
 }
+
+/**
+ * ================
+ * Begin Public API
+ * ================
+ */
 
 /**
  * Creates a new stack-based linked list with 0 elements.

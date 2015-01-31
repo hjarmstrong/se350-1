@@ -1,6 +1,8 @@
 #ifndef LIST_H
 #define LIST_H
 
+/* Global Variables */
+
 #define LIST_MEMORY_SIZE 1024
 
 struct ListNode;
@@ -9,6 +11,8 @@ typedef struct List {
     struct ListNode *first;
     struct ListNode *last;
 } List;
+
+/* List API Methods */
 
 List list_new(void);
 

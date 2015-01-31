@@ -1,11 +1,10 @@
-#include "process.h"
-#include "../mem/mem.h"
-#include "../svc/hal.h"
 #include <LPC17xx.h>
+#include "../mem/mem.h"
+#include "process.h"
+#include "../svc/hal.h"
 
-#include "../printf.h"
+#define INITIAL_xPSR 0x01000000
 
-/* globals */
 PCB **gp_pcbs;
 U32 *gp_stack;
 PROC_INIT g_proc_table[NUM_PROCS];
@@ -16,8 +15,7 @@ List g_queues[NUM_QUEUES];
  * Requires k_memory_init to be called.
  * This initializes processes and finalizes memory initalization.
  */
-void process_init() {
-    PCB *new_proc;
+void k_process_init() {
     U32 *sp;
 
     // Initialize null process table
@@ -25,7 +23,7 @@ void process_init() {
     g_proc_table[0].m_pid = 0;
     g_proc_table[0].m_stack_size = STACK_SIZE;
     g_proc_table[0].mpf_start_pc = &null_proc;
-	  g_proc_table[0].m_priority = 4;
+	  g_proc_table[0].m_priority = PRIORITY_NULL;
 
     // Initialize test process tables
 		// Memory is not setup yet.
@@ -40,9 +38,8 @@ void process_init() {
     // Initilize all processes
 		// Memory is not setup yet.
     for (int i = 0; i < NUM_PROCS; i++) {
-        new_proc = gp_pcbs[i];
-        new_proc->pid = g_proc_table[i].m_pid;
-        new_proc->state = NEW;
+        gp_pcbs[i]->pid = g_proc_table[i].m_pid;
+        gp_pcbs[i]->state = NEW;
 
         set_process_priority(g_proc_table[i].m_pid, g_proc_table[i].m_priority);
 
@@ -52,9 +49,10 @@ void process_init() {
         for (int j = 0; j < 6; j++ ) { // R0-R3, R12(interprocess scratch register), R14(Link Register) are cleared with 0
             *(--sp) = 0x0;
         }
-        new_proc->sp = sp;
+        gp_pcbs[i]->sp = sp;
     }
 
+		// This variable must be set before we can use memory management functionality
     heap_high_address = gp_stack;
 
 		// Add all processes to ready queues
