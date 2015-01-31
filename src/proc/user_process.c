@@ -5,6 +5,8 @@
 
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
+int test_status[NUM_TESTS] = {0}; //0 means not yet run, 1 means success, -1 means failure 
+
 void set_test_procs() {
     g_test_procs[0].mpf_start_pc = &proc_1;
     g_test_procs[1].mpf_start_pc = &proc_2;
@@ -21,42 +23,77 @@ void set_test_procs() {
 }
 
 void proc_1(void) {
-		uart0_put_string("G007_test: test 1 OK\n\r");
+
+	  int failures = 0;
+		int passes = 0;
+		int finished = 0;//boolean
+		uart0_put_string("G007_test: START\n\r");
+		//If we have a spare test, test one passes here
+		test_status[0] = 1;//TEST 1: a process is started
+		test_status[1] = -1;//TEMP TEST 2: can we fail?
+	
+		while(!finished){
+				for(int i = 0; i < NUM_TESTS; i++){
+						if(test_status[i] == 0){
+								finished = 0;
+								break;
+						} else {
+								finished = 1;//Will be reset to false if any tests are not finished
+						}
+				}
+				//add request memory block later to get process blocked
+				release_processor();
+		}
+		
+		for(int i = 0; i < NUM_TESTS; i++){
+				uart0_put_string("G007_test: test %d ", i + 1);
+				if(test_status[i] == 1){
+						uart0_put_string("OK\n\r");
+						passes++;
+				}else{
+						uart0_put_string("FAIL\n\r");
+						failures++;
+				}
+		}
+		
+		uart0_put_string("G007_test: %d/%d tests OK\n\r", passes, NUM_TESTS);
+		uart0_put_string("G007_test: %d/%d tests FAIL\n\r", failures, NUM_TESTS);
+	  uart0_put_string("G007_test: END\n\r");
+		
     while (1) {
         release_processor();
     }
 }
 
 void proc_2(void) {
-		uart0_put_string("G007_test: test 2 OK\n\r");
+		test_status[2] = 1;//TEMP TEST 3: external pass
+
     while (1) {
         release_processor();
     }
 }
 
 void proc_3(void) {
-    uart0_put_string("G007_test: test 3 OK\n\r");
     while (1) {
         release_processor();
     }
 }
 
 void proc_4(void) {
-    uart0_put_string("G007_test: test 4 OK\n\r");
     while (1) {
         release_processor();
     }
 }
 
 void proc_5(void) {
-    uart0_put_string("G007_test: test 5 OK\n\r");
+
     while (1) {
         release_processor();
     }
 }
 
 void proc_6(void) {
-    uart0_put_string("G007_test: test 6 OK\n\r");
+
     while (1) {
         release_processor();
     }
