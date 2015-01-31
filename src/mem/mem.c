@@ -16,7 +16,6 @@ void k_memory_init(void) {
     U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 
     /* 4 bytes padding */
-    // Can remove later if necissary.
     p_end += 4;
 
     /* allocate memory for pcb pointers   */
@@ -85,7 +84,6 @@ void* k_request_memory_block(void) {
     }
 
     for (ptr = root; ptr != heap_low_address; prev = ptr, ptr = ptr->next, is_free = !is_free) {
-        // TODO: BLOCK_SIZE - 2 * HEADER_SIZE ???
         if (is_free == 1) {
             free_size = ((U8 *)ptr) - ((U8 *)ptr->next);
             if (free_size >= BLOCK_SIZE - 2 * HEADER_SIZE) {
@@ -103,7 +101,6 @@ void* k_request_memory_block(void) {
         next_blk = (MemNode *)((U8 *)mem_blk + BLOCK_SIZE);
         next_blk->next = ptr->next;
         ptr->next = next_blk;
-        // TODO: remove HEADER_SIZE ???
     } else if (ptr->next - ptr < BLOCK_SIZE + HEADER_SIZE) {
         // merge nodes
         // block contains two destroyable headers
@@ -199,8 +196,11 @@ int k_release_memory_block(void* mem_blk) {
         next_blk->next = ptr->next;
         prev->next = next_blk;
     } else {
+        // TODO: additional validation
+        // We should verify that the address to-be-freed is an address
+        // we have allocated rather than an address within a block
+
         // in middle of block
-        // TODO: additional validation; check that address is aligned
         // allocated left of removed
         next_blk = mem_blk;
         next_blk->next = ptr->next;
