@@ -71,8 +71,7 @@ ListNode *list_node_new() {
 				}
 		}
 
-		// Out-of-memory
-		return NULL;
+		return RTX_ERROR_LIST_OUT_OF_MEMORY;
 }
 
 void release_list_node(ListNode *node) {
@@ -104,7 +103,7 @@ List list_new() {
  * Adds a node to the end of a linked list.
  */
 void list_push(List *list, void *data) {
-    if (!list->last) {
+    if (list_empty(list)) {
         list->first = list_node_new();
 			  list->last = list->first;
     }

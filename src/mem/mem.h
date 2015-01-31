@@ -31,6 +31,6 @@ extern int _release_memory_block(U32 p_func, void *mem_blk) __SVC_0;
 
 /* Memory Methods */
 
-U32 *alloc_stack(U32 size_b);
+U32 *k_alloc_stack(U32 size_b);
 
 #endif // MEM_H

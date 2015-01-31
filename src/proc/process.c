@@ -1,6 +1,7 @@
 #include <LPC17xx.h>
 #include "../mem/mem.h"
 #include "process.h"
+#include "../stdefs.h"
 #include "../svc/hal.h"
 
 #define INITIAL_xPSR 0x01000000
@@ -43,7 +44,7 @@ void k_process_init() {
 
         set_process_priority(g_proc_table[i].m_pid, g_proc_table[i].m_priority);
 
-        sp = alloc_stack((g_proc_table[i]).m_stack_size);
+        sp = k_alloc_stack((g_proc_table[i]).m_stack_size);
         *(--sp) = INITIAL_xPSR;      // user process initial xPSR
         *(--sp) = (U32)((g_proc_table[i]).mpf_start_pc); // PC contains the entry point of the process
         for (int j = 0; j < 6; j++ ) { // R0-R3, R12(interprocess scratch register), R14(Link Register) are cleared with 0
@@ -65,6 +66,7 @@ void k_process_init() {
 int process_switch(PCB *p_pcb_old) {
     PROC_STATE state = gp_current_process->state;
 
+    // Initalize new processes by popping execution stack
 		if (state == NEW) {
 				if (gp_current_process != p_pcb_old && p_pcb_old->state != NEW) {
 						p_pcb_old->state = READY;
@@ -74,7 +76,8 @@ int process_switch(PCB *p_pcb_old) {
 				__set_MSP((U32) gp_current_process->sp);
 				__rte();  // pop exception stack frame from the stack for a new processes
 		}
-	
+
+    // Switch processes if new process is READY
     if (gp_current_process != p_pcb_old) {
         if (state == READY) {
             p_pcb_old->state = READY;
@@ -83,11 +86,11 @@ int process_switch(PCB *p_pcb_old) {
             __set_MSP((U32) gp_current_process->sp); //switch to the new proc's stack
         } else {
             gp_current_process = p_pcb_old; // revert back to the old proc on error
-					  return -1;
+					  return RTX_ERROR;
         }
     }
 
-    return 0;
+    return RTX_OK;
 }
 
 int k_release_processor(void) {
@@ -96,15 +99,23 @@ int k_release_processor(void) {
     p_pcb_old = gp_current_process;
     gp_current_process = scheduler();
 
+    // revert back to the old process if the scheduler cannot
+    // find a new process to execute
     if (gp_current_process == NULL) {
-        gp_current_process = p_pcb_old; // revert back to the old process
-        return -1;
+        gp_current_process = p_pcb_old;
+        return RTX_ERROR;
     }
 
+    // if this is our first release, p_pcb_old is NULL and we
+    // should emulate switching from the current process
     if (p_pcb_old == NULL) {
         p_pcb_old = gp_current_process;
     }
 
+    // if the previous process is RUNNING (ie. it was not blocked),
+    // we should re-add it to the relevant ready queue
+    // NOTE: if the process was blocked, the blocking code should
+    // have added it to the relevant blocked queue
 		if (p_pcb_old->state == RUNNING) {
 				list_push(&g_queues[get_process_priority(p_pcb_old->pid)], p_pcb_old);
 		}
@@ -114,16 +125,14 @@ int k_release_processor(void) {
 
 int set_process_priority(int process_id, int priority) {
     if (process_id == 0 && priority != 4) {
-        // tried to change priority of null process
-        return -4;
+        return RTX_ERROR_PROCESS_CHANGING_NULL_PROCESS_PRIORITY;
     }
-    if (priority == 4 && process_id != 0) {
-        // tried to set priority = 4 for for non-null process
-        return -3;
+    if (process_id != 0 && priority == 4) {
+        return RTX_ERROR_PROCESS_SETTING_NULL_PRIORITY_TO_NON_NULL_PROCESS;
     }
     if (priority < 0 || priority > 4) {
         // priority out of bounds
-        return -2;
+        return RTX_ERROR_PROCESS_PRIORITY_DOESNT_EXIST;
     }
 
     for (int i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
@@ -131,12 +140,11 @@ int set_process_priority(int process_id, int priority) {
             g_proc_table[i].m_priority = priority;
 					
 						k_release_processor();
-            return 0;
+            return RTX_OK;
         }
     }
 
-    // not found
-    return -1;
+    return RTX_ERROR_PROCESS_PID_NOT_FOUND;
 }
 
 int get_process_priority(int process_id) {
@@ -146,8 +154,7 @@ int get_process_priority(int process_id) {
         }
     }
 
-    // not found
-    return -1;
+    return RTX_ERROR_PROCESS_PID_NOT_FOUND;
 }
 
 PCB *scheduler(void) {
@@ -161,6 +168,5 @@ PCB *scheduler(void) {
         }
     }
 
-    // since the null process always exists, this should never happen
-    return NULL;
+    return RTX_ERROR_PROCESS_SCHEDULER_EMPTY;
 }

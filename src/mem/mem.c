@@ -35,14 +35,14 @@ void k_memory_init(void) {
     /* Set up Heap building address */
     heap_low_address = p_end;
 
-    /* prepare for alloc_stack() to allocate memory for stacks */
+    /* prepare for k_alloc_stack() to allocate memory for stacks */
     gp_stack = (U32 *)0x10008000;
     if ((U32)gp_stack & 0x04) { /* 8 bytes alignment */
         --gp_stack;
     }
 }
 
-U32 *alloc_stack(U32 size_b) {
+U32 *k_alloc_stack(U32 size_b) {
     U32 *sp;
     sp = gp_stack; /* gp_stack is always 8 bytes aligned */
 
@@ -144,22 +144,19 @@ int k_release_memory_block(void* mem_blk) {
 
     offset = ((U32)mem_blk) - ((U32)heap_low_address + HEADER_SIZE);
     if (offset % BLOCK_SIZE != 0) {
-        // unaligned exception
         //__enable_irq();
-        return -1;
+        return RTX_ERROR_MEMORY_UNALIGNED;
     }
     if (heap_low_address > mem_blk || (void *)((U8 *)mem_blk + BLOCK_SIZE) > (void *)heap_high_address) {
-        // out of memory bounds exceptions
         //__enable_irq();
-        return -2;
+        return RTX_ERROR_MEMORY_OUT_OF_BOUNDS;
     }
     for (ptr = root; ptr != heap_low_address; prev = ptr, ptr = ptr->next, is_free = !is_free) {
         // check whether the mem_blk is within the bounds of ptr and ptr->next
         if ((((void *)ptr->next) <= ((void *)((U8 *)mem_blk))) && ((void *)(((U8 *)mem_blk) + BLOCK_SIZE) <= ((void *)ptr))) {
             if (is_free) {
-                // freeing unallocated memory
                 //__enable_irq();
-                return -3;
+                return RTX_ERROR_MEMORY_FREEING_UNALLOCATED;
             }
             break;
         }
@@ -169,7 +166,7 @@ int k_release_memory_block(void* mem_blk) {
         printf("ERROR: ptr was set to heap_low_address\n\r");
 #endif // DEBUG
         //__enable_irq();
-        return -4;
+        return RTX_ERROR;
     }
 
     if (mem_blk == ((U8 *)ptr->next) + HEADER_SIZE) {
@@ -227,5 +224,5 @@ int k_release_memory_block(void* mem_blk) {
     //__enable_irq();
 
 		release_processor();
-    return 0;
+    return RTX_OK;
 }

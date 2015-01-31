@@ -33,5 +33,5 @@ int main() {
 #endif // DEBUG
 
 		release_processor();
-    return 0;
+    return RTX_OK;
 }
