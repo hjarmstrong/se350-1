@@ -8,7 +8,7 @@
 
 /* Global Variables */
 
-#define NUM_TESTS 3
+#define NUM_TESTS 4
 extern struct PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
 /* User Process Methods  */

@@ -5,7 +5,21 @@
 
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
-int test_status[NUM_TESTS] = {0}; //0 means not yet run, 1 means success, -1 means failure 
+int test_status[NUM_TESTS] = {0}; //0 means not yet run, 1 means success, -1 means failure. 
+//Other values are possible in some tests. They are used for communication between processes, and are defined when used.
+
+/* GUIDE TO PRIORITIES:
+ * 0: running test
+ * 1/2: used for preemption/blocking tests
+ * 3: test is finished running
+ */
+
+/* GUIDE TO TESTS: (comments also found at line where tests pass)
+ * 1: a process is started and runs
+ * 2: Allocated memory is not corrupted
+ * 3: proc_3 was preempted when changing it's priority down
+ * 4: proc_4 was preempted by changing proc_3 priority up
+ */
 
 void set_test_procs() {
     g_test_procs[0].mpf_start_pc = &proc_1;
@@ -27,14 +41,17 @@ void proc_1(void) {
 
 	  int failures = 0;
 		int passes = 0;
-		int finished = 0;//boolean
+		int pid = 1;
+		//int finished = 0;//boolean REMOVE when priority changes working
 		uart0_put_string("G007_test: START\n\r");
-		//If we have a spare test, test one passes here
+
 		test_status[0] = 1;//TEST 1: a process is started and runs
 	
-		while(!finished){
+		set_process_priority(pid, 3);//Done test. When everything else is done too, this will run again, printing the results
+	
+		/*while(!finished){ //Works, but changing priority to 3 is better. REMOVE when priority changes working
 				for(int i = 0; i < NUM_TESTS; i++){
-						if(test_status[i] == 0){
+						if(test_status[i] != 1 && test_status[i] != -1){//using non-zero values in some tests before completion
 								finished = 0;
 								break;
 						} else {
@@ -43,7 +60,7 @@ void proc_1(void) {
 				}
 				//add request memory block later to get process blocked
 				release_processor();
-		}
+		}*/
 		
 		for(int i = 0; i < NUM_TESTS; i++){
 				uart0_put_string("G007_test: test %d ", i + 1);
@@ -67,7 +84,7 @@ void proc_1(void) {
 
 //Test that allocated memory is not overwritten
 void proc_2(void) {
-		//int pid = 2;//LAURA  remove if not using
+		int pid = 2;
 	
 		int *ptr = request_memory_block();
 		*ptr = 42;
@@ -82,45 +99,72 @@ void proc_2(void) {
 				test_status[1] = -1;
 		}
 		
-		//set_process_priority(pid, 3);//Done testing, get out of the way
 
+		set_process_priority(pid, 3);//Done testing, get out of the way
     while (1) {
         release_processor();
     }
 }
 
-void proc_3(void) {
-		//int pid = 3;//LAURA  remove if not using
+void proc_3(void) {//Part 1 of preemption tests for priority change
+		int pid = 3;
+	
+		test_status[2] = 2;//2 tells proc_4 that this process has run
+		set_process_priority(pid, 2);
+		if(test_status[2] != 1){//proc_4 will set this to 1 if it runs before we get to this line
+				test_status[2] = -1;
+		}
 		
-		//set_process_priority(pid, 3);
+		while(test_status[3] == 0){
+				release_processor();
+		}
+		if(test_status[3] == 2){//TEST 4: proc_4 was preempted by changing proc_3 priority up
+				test_status[3] = 1;
+		}
+		
+		set_process_priority(pid, 3);//Done testing, get out of the way
     while (1) {
         release_processor();
     }
 }
 
-void proc_4(void) {
-		//int pid = 4;//LAURA  remove if not using
+void proc_4(void) {//Part 2 of preemption tests for priority change
+		int pid = 4;
+		int part_1_pid = 3;
 		
-		//set_process_priority(pid, 3);
+		while(test_status[2] == 0){
+				release_processor();
+		}
+		if(test_status[2] == 2){//TEST 3: proc_3 was preempted when changing it's priority down
+				test_status[2] = 1;//
+		}
+		
+		set_process_priority(pid, 1);//set priority down so that proc_3 can be set to higher priority
+		test_status[3] = 2;//indicates that this has run
+		set_process_priority(part_1_pid, 0);
+		if(test_status[3] != 1){//proc_3 will set test_status if this process is preempted
+				test_status[3] = -1;
+		}
+		
+		set_process_priority(pid, 3);//Done testing, get out of the way
     while (1) {
         release_processor();
     }
 }
 
 void proc_5(void) {
-		//int pid = 5;//LAURA  remove if not using
+		int pid = 5;
 		
-		//set_process_priority(pid, 3);
+		set_process_priority(pid, 3);//Done testing, get out of the way
     while (1) {
         release_processor();
     }
 }
 
 void proc_6(void) {
-
-		//int pid = 6;//LAURA  remove if not using
+		int pid = 6;
 		
-		//set_process_priority(pid, 3);
+		set_process_priority(pid, 3);//Done testing, get out of the way
 
     while (1) {
         release_processor();
