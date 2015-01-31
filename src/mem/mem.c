@@ -72,7 +72,9 @@ void* k_request_memory_block(void) {
     //__disable_irq();
 
     while (((unsigned char *)root) - ((unsigned char *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
-				// TODO: list_push may call k_request_memory => infinite loop
+				// TODO: this seems to be adding gp_current_process to priority queue
+			  // 0, which may or may not have anything to do with that being
+			  // its original queue
 				list_push(&g_queues[PRIORITY_BLOCKED_ON_MEMORY], gp_current_process);
 				gp_current_process->state = BLOCKED;
 				//__enable_irq();

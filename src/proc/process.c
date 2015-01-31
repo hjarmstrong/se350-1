@@ -37,7 +37,7 @@ void process_init() {
         g_proc_table[i + 1].m_priority = g_test_procs[i].m_priority;
     }
 
-    // Initilize all processes, add to queues
+    // Initilize all processes
 		// Memory is not setup yet.
     for (int i = 0; i < NUM_PROCS; i++) {
         new_proc = gp_pcbs[i];
@@ -56,7 +56,8 @@ void process_init() {
     }
 
     heap_high_address = gp_stack;
-		
+
+		// Add all processes to ready queues
 		// Now memory is setup. Not before.
     for (int i = 0; i < NUM_PROCS; ++i) {
 				list_push(&g_queues[g_proc_table[i].m_priority], gp_pcbs[i]);
