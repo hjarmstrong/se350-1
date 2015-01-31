@@ -79,15 +79,14 @@ void* k_request_memory_block(void) {
 				is_init = 1;
 		}
 
-    //__disable_irq();
-
     while (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
         gp_current_process->state = BLOCKED;
         k_enqueue_process(gp_current_process->pid);
 
-        //__enable_irq();
         k_release_processor();
     }
+
+    __disable_irq();
 
     for (ptr = root; ptr != heap_low_address; prev = ptr, ptr = ptr->next, is_free = !is_free) {
         if (is_free == 1) {
@@ -130,7 +129,7 @@ void* k_request_memory_block(void) {
         ptr->next = next_blk;
     }
 
-    //__enable_irq();
+    __enable_irq();
     return mem_blk;
 }
 
@@ -142,22 +141,17 @@ int k_release_memory_block(void* mem_blk) {
     MemNode *prev = NULL;
     MemNode *ptr = NULL;
 
-    //__disable_irq();
-
     offset = ((U32)mem_blk) - ((U32)heap_low_address + HEADER_SIZE);
     if (offset % BLOCK_SIZE != 0) {
-        //__enable_irq();
         return RTX_ERROR_MEMORY_UNALIGNED;
     }
     if (heap_low_address > mem_blk || (void *)((U8 *)mem_blk + BLOCK_SIZE) > (void *)heap_high_address) {
-        //__enable_irq();
         return RTX_ERROR_MEMORY_OUT_OF_BOUNDS;
     }
     for (ptr = root; ptr != heap_low_address; prev = ptr, ptr = ptr->next, is_free = !is_free) {
         // check whether the mem_blk is within the bounds of ptr and ptr->next
         if ((((void *)ptr->next) <= ((void *)((U8 *)mem_blk))) && ((void *)(((U8 *)mem_blk) + BLOCK_SIZE) <= ((void *)ptr))) {
             if (is_free) {
-                //__enable_irq();
                 return RTX_ERROR_MEMORY_FREEING_UNALLOCATED;
             }
             break;
@@ -167,9 +161,10 @@ int k_release_memory_block(void* mem_blk) {
 #ifdef DEBUG
         printf("ERROR: ptr was set to heap_low_address\n\r");
 #endif // DEBUG
-        //__enable_irq();
         return RTX_ERROR;
     }
+
+    __disable_irq();
 
     if (mem_blk == ((U8 *)ptr->next) + HEADER_SIZE) {
         if (mem_blk == ((U8 *)ptr) - BLOCK_SIZE) {
@@ -220,7 +215,7 @@ int k_release_memory_block(void* mem_blk) {
 
     k_unblock_queue(PRIORITY_BLOCKED_ON_MEMORY);
 
-    //__enable_irq();
+    __enable_irq();
 
 		release_processor();
     return RTX_OK;
