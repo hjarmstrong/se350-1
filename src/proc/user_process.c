@@ -1,5 +1,5 @@
 #include "../mem/mem.h"
-#include "../printf.h"
+#include "../uart_polling.h"
 #include "user_process.h"
 
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
@@ -20,42 +20,42 @@ void set_test_procs() {
 }
 
 void proc_1(void) {
-		printf("G007_test: test 1 OK\n\r");
+		uart0_put_string("G007_test: test 1 OK\n\r");
     while (1) {
         release_processor();
     }
 }
 
 void proc_2(void) {
-		printf("G007_test: test 2 OK\n\r");
+		uart0_put_string("G007_test: test 2 OK\n\r");
     while (1) {
         release_processor();
     }
 }
 
 void proc_3(void) {
-    printf("G007_test: test 3 OK\n\r");
+    uart0_put_string("G007_test: test 3 OK\n\r");
     while (1) {
         release_processor();
     }
 }
 
 void proc_4(void) {
-    printf("G007_test: test 4 OK\n\r");
+    uart0_put_string("G007_test: test 4 OK\n\r");
     while (1) {
         release_processor();
     }
 }
 
 void proc_5(void) {
-    printf("G007_test: test 5 OK\n\r");
+    uart0_put_string("G007_test: test 5 OK\n\r");
     while (1) {
         release_processor();
     }
 }
 
 void proc_6(void) {
-    printf("G007_test: test 6 OK\n\r");
+    uart0_put_string("G007_test: test 6 OK\n\r");
     while (1) {
         release_processor();
     }

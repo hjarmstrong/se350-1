@@ -1,7 +1,11 @@
 #include "../list/list.h"
 #include "mem.h"
-#include "../printf.h"
 #include "../proc/process.h"
+#include "../stdefs.h"
+
+#ifdef DEBUG
+    #include "../printf.h"
+#endif // DEBUG
 
 MemNode *root;
 
@@ -161,8 +165,9 @@ int k_release_memory_block(void* mem_blk) {
         }
     }
     if (ptr == heap_low_address) {
-        // This should never happen
+#ifdef DEBUG
         printf("ERROR: ptr was set to heap_low_address\n\r");
+#endif // DEBUG
         //__enable_irq();
         return -4;
     }

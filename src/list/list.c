@@ -37,7 +37,7 @@ ListNode *request_list_node(void) {
 ListNode *list_nodes[NUM_QUEUES];
 int list_node_used[NUM_QUEUES];
 
-void initialize_list_nodes() {
+void list_init() {
 		ListNode *node;
 
 		for (int i = 0; i < NUM_QUEUES; ++i) {

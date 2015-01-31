@@ -3,6 +3,8 @@
 
 #include <system_LPC17xx.h>
 
+#define DEBUG 1
+
 #define NULL ((void *)0)
 #define __SVC_0 __svc_indirect(0)
 
