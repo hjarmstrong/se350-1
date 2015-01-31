@@ -22,6 +22,7 @@ void set_test_procs() {
     }
 }
 
+//Prints test results, tests that a process runs
 void proc_1(void) {
 
 	  int failures = 0;
@@ -29,8 +30,7 @@ void proc_1(void) {
 		int finished = 0;//boolean
 		uart0_put_string("G007_test: START\n\r");
 		//If we have a spare test, test one passes here
-		test_status[0] = 1;//TEST 1: a process is started
-		test_status[1] = -1;//TEMP TEST 2: can we fail?
+		test_status[0] = 1;//TEST 1: a process is started and runs
 	
 		while(!finished){
 				for(int i = 0; i < NUM_TESTS; i++){
@@ -65,8 +65,24 @@ void proc_1(void) {
     }
 }
 
+//Test that allocated memory is not overwritten
 void proc_2(void) {
-		test_status[2] = 1;//TEMP TEST 3: external pass
+		//int pid = 2;//LAURA  remove if not using
+	
+		int *ptr = request_memory_block();
+		*ptr = 42;
+		
+		for(int i = 0; i < 10; i++){//give other processes time to adjust memory
+				release_processor();
+		}
+		
+		if(*ptr == 42){ //TEST 2: Allocated memory is not corrupted
+				test_status[1] = 1;
+		}else{
+				test_status[1] = -1;
+		}
+		
+		//set_process_priority(pid, 3);//Done testing, get out of the way
 
     while (1) {
         release_processor();
@@ -74,25 +90,37 @@ void proc_2(void) {
 }
 
 void proc_3(void) {
+		//int pid = 3;//LAURA  remove if not using
+		
+		//set_process_priority(pid, 3);
     while (1) {
         release_processor();
     }
 }
 
 void proc_4(void) {
+		//int pid = 4;//LAURA  remove if not using
+		
+		//set_process_priority(pid, 3);
     while (1) {
         release_processor();
     }
 }
 
 void proc_5(void) {
-
+		//int pid = 5;//LAURA  remove if not using
+		
+		//set_process_priority(pid, 3);
     while (1) {
         release_processor();
     }
 }
 
 void proc_6(void) {
+
+		//int pid = 6;//LAURA  remove if not using
+		
+		//set_process_priority(pid, 3);
 
     while (1) {
         release_processor();
