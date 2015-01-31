@@ -1,6 +1,8 @@
 #ifndef LIST_H
 #define LIST_H
 
+#include "../stdefs.h"
+
 /* Global Variables */
 
 #define LIST_MEMORY_SIZE 1024
@@ -30,5 +32,9 @@ int list_empty(List *);
 
 int list_segment_size(void *);
 void *list_next_segment(void *);
+
+#ifdef DEBUG
+void print_list(List *);
+#endif // DEBUG
 
 #endif // LIST_H

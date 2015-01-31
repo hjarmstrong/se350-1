@@ -2,7 +2,10 @@
 #include "../mem/mem.h"
 #include "../proc/process.h"
 #include "../proc/scheduler.h"
-#include "../stdefs.h"
+
+#ifdef DEBUG
+    #include "../printf.h"
+#endif
 
 /**
  * Represents a linked list node with NODE_SIZE elements.
@@ -60,8 +63,8 @@ ListNode *list_node_new() {
 		ListNode *node;
 
 		for (int i = 0; i < NUM_QUEUES; ++i) {
-				if (!list_node_used[i]) {
-						node = list_nodes[list_node_used[i]];
+				if (list_node_used[i] == 0) {
+						node = list_nodes[i];
 						list_node_used[i] = 1;
 
 						node->next = NULL;
@@ -214,3 +217,23 @@ void *list_next_segment(void *start_of_data) {
     ListNode *node = (ListNode *)(((U32 *)start_of_data) - NODE_SIZE);
     return node->next ? node->next + NODE_SIZE : NULL;
 }
+
+#ifdef DEBUG
+void print_list(List *list) {
+    PCB *process;
+		PCB *processes[20];
+		int j = 0;
+		while (!list_empty(list)) {
+				process = list_front(list);
+				list_shift(list);
+				printf(" %d", process->pid);
+				processes[j] = process;
+				++j;
+		}
+		printf("\n\r");
+
+		for (int k = 0; k < j; ++k) {
+				list_push(list, processes[k]);
+		}
+}
+#endif // DEBUG
