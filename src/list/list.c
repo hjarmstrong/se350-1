@@ -1,5 +1,6 @@
 #include "list.h"
 #include "../mem/mem.h"
+#include "../proc/process.h"
 
 /**
  * Represents a linked list node with NODE_SIZE elements.
@@ -9,29 +10,76 @@ typedef struct ListNode {
     struct ListNode *next;
     struct ListNode *prev;
     unsigned char count;
-    /*--- data goes from here up to here + BLOCK_SIZE ---*/
+    /*--- data goes from here up to here + LIST_NODE_SIZE ---*/
 } ListNode;
 
+#define LIST_NODE_SIZE (LIST_MEMORY_SIZE / NUM_QUEUES)
+
 // Maximum number of elements in ListNode
-#define NODE_SIZE ((int)((BLOCK_SIZE - sizeof(ListNode)) / sizeof(void *)))
+#define NODE_SIZE ((int)((LIST_NODE_SIZE - sizeof(ListNode)) / sizeof(void *)))
 
 // Gives the address of the 0th element in p_node
 #define NODE_START(p_node) ((void **)(((unsigned char *)p_node) + sizeof(ListNode)))
 
+void *list_mem_ptr = NULL;
+
+ListNode *request_list_node(void) {
+		if (list_mem_ptr == NULL) {
+				list_mem_ptr = ((void *)(((unsigned char *)heap_low_address) - LIST_MEMORY_SIZE));
+		}
+
+		ListNode *block = list_mem_ptr;
+		list_mem_ptr = ((unsigned char *)list_mem_ptr) + LIST_NODE_SIZE;
+		return block;
+}
+
+ListNode *list_nodes[NUM_QUEUES];
+int list_node_used[NUM_QUEUES];
+
+void initialize_list_nodes() {
+		ListNode *node;
+
+		for (int i = 0; i < NUM_QUEUES; ++i) {
+				node = request_list_node();
+				list_nodes[i] = node;
+
+				list_node_used[i] = 0;
+		}
+}
+
 /**
- * Creates a new linked list node with size BLOCK_SIZE with NODE_SIZE elements
+ * Creates a new linked list node with size LIST_NODE_SIZE with NODE_SIZE elements
  * starting at NODE_START.
  *
  * The caller must free this node by calling release_memory_block(...).
  */
 ListNode *list_node_new() {
-    ListNode *node = (ListNode *) request_memory_block();
+		ListNode *node;
 
-    node->next = NULL;
-    node->prev = NULL;
-    node->count = 0;
+		for (int i = 0; i < NUM_QUEUES; ++i) {
+				if (!list_node_used[i]) {
+						node = list_nodes[list_node_used[i]];
+						list_node_used[i] = 1;
 
-    return node;
+						node->next = NULL;
+						node->prev = NULL;
+						node->count = 0;
+
+						return node;
+				}
+		}
+
+		// TODO: this should never happen
+		return NULL;
+}
+
+void release_list_node(ListNode *node) {
+		for (int i = 0; i < NUM_QUEUES; ++i) {
+				if (list_nodes[i] == node) {
+						list_node_used[i] = 0;
+						return;
+				}
+		}
 }
 
 /**
@@ -49,7 +97,8 @@ List list_new() {
  */
 void list_push(List *list, void *data) {
     if (!list->last) {
-        list->first = list->last = list_node_new();
+        list->first = list_node_new();
+			  list->last = list->first;
     }
 
     if (list->last->count == NODE_SIZE) {
@@ -79,7 +128,7 @@ void list_pop(List *list) {
             last->prev->next = NULL;
             list->last = last->prev;
         }
-        release_memory_block(last);
+				release_list_node(last);
     }
 }
 
@@ -112,7 +161,7 @@ void list_shift(List *list) {
     }
 
     if (!first->count) {
-        if(first == list->last) {
+        if (first == list->last) {
             list->first = NULL;
             list->last = NULL;
         } else {
@@ -120,7 +169,7 @@ void list_shift(List *list) {
             first->next->prev = NULL;
             list->first = first->next;
         }
-        release_memory_block(first);
+				release_list_node(first);
     }
 }
 

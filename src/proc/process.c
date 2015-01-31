@@ -1,8 +1,9 @@
 #include "process.h"
-#include "../list/list.h"
 #include "../mem/mem.h"
 #include "../svc/hal.h"
 #include <LPC17xx.h>
+
+#include "../printf.h"
 
 /* globals */
 PCB **gp_pcbs;
@@ -11,34 +12,39 @@ PROC_INIT g_proc_table[NUM_PROCS];
 PCB *gp_current_process = NULL;
 List g_queues[NUM_QUEUES];
 
+/**
+ * Requires k_memory_init to be called.
+ * This initializes processes and finalizes memory initalization.
+ */
 void process_init() {
     PCB *new_proc;
     U32 *sp;
 
     // Initialize null process table
+		// Memory is not setup yet.
     g_proc_table[0].m_pid = 0;
     g_proc_table[0].m_stack_size = STACK_SIZE;
     g_proc_table[0].mpf_start_pc = &null_proc;
-    g_proc_table[0].m_priority = 4;
+	  g_proc_table[0].m_priority = 4;
 
     // Initialize test process tables
+		// Memory is not setup yet.
     set_test_procs();
-    for (int i = 1; i < NUM_TEST_PROCS; ++i) {
-        g_proc_table[i].m_pid = g_test_procs[i].m_pid;
-        g_proc_table[i].m_stack_size = g_test_procs[i].m_stack_size;
-        g_proc_table[i].mpf_start_pc = g_test_procs[i].mpf_start_pc;
-        g_proc_table[i].m_priority = g_test_procs[i].m_priority;
+    for (int i = 0; i < NUM_TEST_PROCS; ++i) {
+        g_proc_table[i + 1].m_pid = g_test_procs[i].m_pid;
+        g_proc_table[i + 1].m_stack_size = g_test_procs[i].m_stack_size;
+        g_proc_table[i + 1].mpf_start_pc = g_test_procs[i].mpf_start_pc;
+        g_proc_table[i + 1].m_priority = g_test_procs[i].m_priority;
     }
 
     // Initilize all processes, add to queues
+		// Memory is not setup yet.
     for (int i = 0; i < NUM_PROCS; i++) {
         new_proc = gp_pcbs[i];
         new_proc->pid = g_proc_table[i].m_pid;
-        new_proc->state = READY;
+        new_proc->state = NEW;
 
         set_process_priority(g_proc_table[i].m_pid, g_proc_table[i].m_priority);
-
-        list_push(&g_queues[g_proc_table[i].m_priority], new_proc);
 
         sp = alloc_stack((g_proc_table[i]).m_stack_size);
         *(--sp) = INITIAL_xPSR;      // user process initial xPSR
@@ -50,19 +56,27 @@ void process_init() {
     }
 
     heap_high_address = gp_stack;
-}
-
-void queue_init(void) {
-    gp_current_process->state = RUNNING;
-    __set_MSP((U32) gp_current_process->sp);
-    __rte();  // pop exception stack frame from the stack for a new processes
+		
+		// Now memory is setup. Not before.
+    for (int i = 0; i < NUM_PROCS; ++i) {
+				list_push(&g_queues[g_proc_table[i].m_priority], gp_pcbs[i]);
+		} 
 }
 
 int process_switch(PCB *p_pcb_old) {
-    PROC_STATE state;
+    PROC_STATE state = gp_current_process->state;
 
+		if (state == NEW) {
+				if (gp_current_process != p_pcb_old && p_pcb_old->state != NEW) {
+						p_pcb_old->state = READY;
+						p_pcb_old->sp = ((U32 *)__get_MSP());
+				}
+				gp_current_process->state = RUNNING;
+				__set_MSP((U32) gp_current_process->sp);
+				__rte();  // pop exception stack frame from the stack for a new processes
+		}
+	
     if (gp_current_process != p_pcb_old) {
-        state = gp_current_process->state;
         if (state == READY) {
             p_pcb_old->state = READY;
             p_pcb_old->sp = (U32 *) __get_MSP(); // save the old process's sp
@@ -70,7 +84,7 @@ int process_switch(PCB *p_pcb_old) {
             __set_MSP((U32) gp_current_process->sp); //switch to the new proc's stack
         } else {
             gp_current_process = p_pcb_old; // revert back to the old proc on error
-            return -1;
+					  return -1;
         }
     }
 
@@ -92,7 +106,9 @@ int k_release_processor(void) {
         p_pcb_old = gp_current_process;
     }
 
-    list_push(&g_queues[get_process_priority(p_pcb_old->pid)], p_pcb_old);
+		if (p_pcb_old->state == RUNNING) {
+				list_push(&g_queues[get_process_priority(p_pcb_old->pid)], p_pcb_old);
+		}
 
     return process_switch(p_pcb_old);
 }
@@ -136,8 +152,8 @@ int get_process_priority(int process_id) {
 PCB *scheduler(void) {
     PCB *process;
 
-    for (int i = 0; i < NUM_QUEUES; ++i) {
-        if (list_empty(&g_queues[i]) == 0) {
+    for (int i = 0; i < NUM_READY_QUEUES; ++i) {
+        if (!list_empty(&g_queues[i])) {
             process = list_front(&g_queues[i]);
             list_shift(&g_queues[i]);
             return process;

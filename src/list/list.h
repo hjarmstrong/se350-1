@@ -1,6 +1,8 @@
 #ifndef LIST_H
 #define LIST_H
 
+#define LIST_MEMORY_SIZE 1024
+
 struct ListNode;
 
 typedef struct List {
@@ -9,6 +11,8 @@ typedef struct List {
 } List;
 
 List list_new(void);
+
+void initialize_list_nodes(void);
 
 void list_push(List *, void *data);
 void list_pop(List *);

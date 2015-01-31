@@ -4,7 +4,7 @@
 #include "test.h"
 
 
-#define NUM_BLOCKS (((LAST_ADDRESS - ((unsigned int)START_ADDRESS) - 2 * HEADER_SIZE) / BLOCK_SIZE))
+#define NUM_BLOCKS (((((unsigned int)heap_high_address) - ((unsigned int)heap_low_address) - 2 * HEADER_SIZE) / BLOCK_SIZE))
 
 
 /**

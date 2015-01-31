@@ -12,15 +12,17 @@
 int main() {
     SystemInit();
 
-    uart0_init();
+		uart0_init();
     init_printf(NULL);
 
-    k_memory_init();
-    process_init();
-    queue_init();
+    memory_init();
+		initialize_list_nodes();
+		process_init();
 
-    run_list_tests();
-    run_mem_tests();
+    //run_list_tests();
+    //run_mem_tests();
+
+		release_processor();
 
     return 0;
 }

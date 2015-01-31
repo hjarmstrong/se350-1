@@ -32,11 +32,11 @@ void test_one_item() {
 void test_push_shift_many_items() {
     List l = list_new();
 
-    for (unsigned int i = 1; i < 500; ++i) {
+    for (unsigned int i = 1; i < 100; ++i) {
         list_push(&l, (void *)i);
     }
 
-    for (unsigned int i = 1; i < 500; ++i) {
+    for (unsigned int i = 1; i < 100; ++i) {
         assert(list_front(&l) == (void*)i, "test_push_shift_many_items (1) FAILED!\n\r");
         list_shift(&l);
     }
@@ -49,12 +49,12 @@ void test_push_shift_many_items() {
 void test_push_pop_many_items() {
     List l = list_new();
 
-    for (unsigned int i = 1; i < 500; ++i) {
+    for (unsigned int i = 1; i < 100; ++i) {
         list_push(&l, (void *)i);
         assert(list_back(&l) == (void*)i, "test_push_pop_many_items (1) FAILED!\n\r");
     }
 
-    for (unsigned int i = 499; i >= 1; --i) {
+    for (unsigned int i = 99; i >= 1; --i) {
         assert(list_back(&l) == (void*)i, "test_push_pop_many_items (2) FAILED!\n\r");
         list_pop(&l);
     }

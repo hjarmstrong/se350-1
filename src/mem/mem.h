@@ -4,6 +4,8 @@
 #include "../stdefs.h"
 
 extern void k_memory_init(void);
+#define memory_init() _memory_init((U32)k_memory_init)
+extern int _memory_init(U32 p_func) __SVC_0;
 
 U32 *alloc_stack(U32 size_b);
 
@@ -21,8 +23,6 @@ typedef struct MemNode {
 } MemNode;
 
 #define HEADER_SIZE sizeof(MemNode)
-#define START_ADDRESS ((void *)(&Image$$RW_IRAM1$$ZI$$Limit))
-#define LAST_ADDRESS 0x10007FFF
 #define BLOCK_SIZE 0x80
 
 extern void *heap_high_address;

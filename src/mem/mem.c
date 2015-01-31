@@ -1,15 +1,14 @@
+#include "../list/list.h"
 #include "mem.h"
 #include "../printf.h"
 #include "../proc/process.h"
 
-MemNode *root = (void *)(LAST_ADDRESS - HEADER_SIZE);
+MemNode *root;
 
 void *heap_high_address;
 void *heap_low_address;
 
 void k_memory_init(void) {
-    root->next = START_ADDRESS;
-
     char *p_end = (char *)&Image$$RW_IRAM1$$ZI$$Limit;
 
     /* 4 bytes padding */
@@ -25,16 +24,15 @@ void k_memory_init(void) {
         p_end += sizeof(PCB);
     }
 
+		/* allocate memory for list management */
+		// TODO: make this dynamic
+		p_end += LIST_MEMORY_SIZE;
+
     /* Set up Heap building address */
     heap_low_address = p_end;
 
-    printf("gp_pcbs[0] = 0x%x \n", gp_pcbs[0]);
-    printf("gp_pcbs[1] = 0x%x \n", gp_pcbs[1]);
-
-
     /* prepare for alloc_stack() to allocate memory for stacks */
-
-    gp_stack = (U32 *)LAST_ADDRESS;
+    gp_stack = (U32 *)0x10008000;
     if ((U32)gp_stack & 0x04) { /* 8 bytes alignment */
         --gp_stack;
     }
@@ -56,23 +54,30 @@ U32 *alloc_stack(U32 size_b)
 }
 
 void* k_request_memory_block(void) {
-    int free_size = 0;
+		static int is_init = 0;
+
+		int free_size = 0;
     int is_free = 1;
     void *mem_blk = NULL;
     MemNode *next_blk = NULL;
     MemNode *prev = NULL;
     MemNode *ptr = NULL;
+	  
+		if (!is_init) {
+				root = (void *)(((unsigned char *)heap_high_address) - HEADER_SIZE);
+				root->next = heap_low_address;
+				is_init = 1;
+		}
 
-    __disable_irq();
+    //__disable_irq();
 
-    // while no mem block avail
-    //     put PCB on blocked_resource_q ;
-    //     set process state to BLOCKED_ON_RESOURCE ;
-    //     release_processor ( ) ;
-        // if ((void *)((unsigned char *)root - HEADER_SIZE) == (void *)root->next && root->next->next == heap_low_address) {
-        //    __enable_irq();
-        //      return NULL;
-        // }
+    while (((unsigned char *)root) - ((unsigned char *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
+				// TODO: list_push may call k_request_memory => infinite loop
+				list_push(&g_queues[PRIORITY_BLOCKED_ON_MEMORY], gp_current_process);
+				gp_current_process->state = BLOCKED;
+				//__enable_irq();
+				k_release_processor();
+    }
 
     for (ptr = root; ptr != heap_low_address; prev = ptr, ptr = ptr->next, is_free = !is_free) {
         // TODO: BLOCK_SIZE - 2 * HEADER_SIZE ???
@@ -117,7 +122,7 @@ void* k_request_memory_block(void) {
         ptr->next = next_blk;
     }
 
-    __enable_irq();
+    //__enable_irq();
     return mem_blk;
 }
 
@@ -128,18 +133,19 @@ int k_release_memory_block(void* mem_blk) {
     MemNode *next_blk = NULL;
     MemNode *prev = NULL;
     MemNode *ptr = NULL;
+		PCB *process = NULL;
 
-    __disable_irq();
+    //__disable_irq();
 
     offset = ((U32)mem_blk) - ((U32)heap_low_address + HEADER_SIZE);
     if (offset % BLOCK_SIZE != 0) {
         // unaligned exception
-        __enable_irq();
+        //__enable_irq();
         return -1;
     }
     if (heap_low_address > mem_blk || (void *)((unsigned char *)mem_blk + BLOCK_SIZE) > (void *)heap_high_address) {
         // out of memory bounds exceptions
-        __enable_irq();
+        //__enable_irq();
         return -2;
     }
     for (ptr = root; ptr != heap_low_address; prev = ptr, ptr = ptr->next, is_free = !is_free) {
@@ -147,7 +153,7 @@ int k_release_memory_block(void* mem_blk) {
         if ((((void *)ptr->next) <= ((void *)((unsigned char *)mem_blk))) && ((void *)(((unsigned char *)mem_blk) + BLOCK_SIZE) <= ((void *)ptr))) {
             if (is_free) {
                 // freeing unallocated memory
-                __enable_irq();
+                //__enable_irq();
                 return -3;
             }
             break;
@@ -156,7 +162,7 @@ int k_release_memory_block(void* mem_blk) {
     if (ptr == heap_low_address) {
         // This should never happen
         printf("ERROR: ptr was set to heap_low_address\n\r");
-        __enable_irq();
+        //__enable_irq();
         return -4;
     }
 
@@ -204,10 +210,17 @@ int k_release_memory_block(void* mem_blk) {
         ptr->next = middle_blk;
     }
 
-    // if ( blocked on resource q not empty ) f
-    //     handle_process_ready (pop( blocked resource q ) ) ;
+		while (!list_empty(&g_queues[PRIORITY_BLOCKED_ON_MEMORY])) {
+				process = list_front(&g_queues[PRIORITY_BLOCKED_ON_MEMORY]);
+        list_shift(&g_queues[PRIORITY_BLOCKED_ON_MEMORY]);
+				process->state = READY;
 
-    __enable_irq();
-    return 0;
+			  list_push(&g_queues[get_process_priority(process->pid)], process);
+		}
+
+    //__enable_irq();
+
+		release_processor();
+		// Impossible state due to preemption
+    return -1;
 }
-
