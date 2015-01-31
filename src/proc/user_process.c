@@ -42,39 +42,36 @@ void proc_1(void) {
 	  int failures = 0;
 		int passes = 0;
 		int pid = 1;
-		//int finished = 0;//boolean REMOVE when priority changes working
 		uart0_put_string("G007_test: START\n\r");
 
 		test_status[0] = 1;//TEST 1: a process is started and runs
 	
 		set_process_priority(pid, 3);//Done test. When everything else is done too, this will run again, printing the results
-	
-		/*while(!finished){ //Works, but changing priority to 3 is better. REMOVE when priority changes working
-				for(int i = 0; i < NUM_TESTS; i++){
-						if(test_status[i] != 1 && test_status[i] != -1){//using non-zero values in some tests before completion
-								finished = 0;
-								break;
-						} else {
-								finished = 1;//Will be reset to false if any tests are not finished
-						}
-				}
-				//add request memory block later to get process blocked
-				release_processor();
-		}*/
 		
 		for(int i = 0; i < NUM_TESTS; i++){
-				uart0_put_string("G007_test: test %d ", i + 1);
+				uart0_put_string("G007_test: test ");
+				uart0_put_char(i + 1 + 48);
 				if(test_status[i] == 1){
-						uart0_put_string("OK\n\r");
+						uart0_put_string(" OK\n\r");
 						passes++;
 				}else{
-						uart0_put_string("FAIL\n\r");
+						uart0_put_string(" FAIL\n\r");
 						failures++;
 				}
 		}
 		
-		uart0_put_string("G007_test: %d/%d tests OK\n\r", passes, NUM_TESTS);
-		uart0_put_string("G007_test: %d/%d tests FAIL\n\r", failures, NUM_TESTS);
+		uart0_put_string("G007_test: ");
+		uart0_put_char(passes + 48);
+		uart0_put_string("/");
+		uart0_put_char(NUM_TESTS + 48);
+		uart0_put_string(" tests OK\n\r");
+		
+		uart0_put_string("G007_test: ");
+		uart0_put_char(failures + 48);
+		uart0_put_string("/");
+		uart0_put_char(NUM_TESTS + 48);
+		uart0_put_string(" tests FAILS\n\r");
+		
 	  uart0_put_string("G007_test: END\n\r");
 		
     while (1) {
