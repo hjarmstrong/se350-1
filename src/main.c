@@ -23,6 +23,5 @@ int main() {
     //run_mem_tests();
 
 		release_processor();
-
     return 0;
 }

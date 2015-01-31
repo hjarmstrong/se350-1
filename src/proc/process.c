@@ -131,6 +131,8 @@ int set_process_priority(int process_id, int priority) {
     for (int i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
         if (g_proc_table[i].m_pid == process_id) {
             g_proc_table[i].m_priority = priority;
+					
+						k_release_processor();
             return 0;
         }
     }

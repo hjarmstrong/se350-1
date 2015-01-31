@@ -223,6 +223,5 @@ int k_release_memory_block(void* mem_blk) {
     //__enable_irq();
 
 		release_processor();
-		// Impossible state due to preemption
-    return -1;
+    return 0;
 }
