@@ -17,6 +17,8 @@ int main() {
 
 		uart0_init();
     init_printf(NULL);
+	
+		printf("\n\r\n\r");
 
     memory_init();
     list_init();

@@ -19,8 +19,29 @@ void k_scheduler_init() {
     } 
 }
 
+int k_dequeue_process(int process_id) {
+		int found_process = 0;
+		for (int i = 0; i < NUM_QUEUES && !found_process; ++i) {
+				PCB *processes[NUM_PROCS];
+				int process_count;
+				for (process_count = 0; !list_empty(&g_queues[i]); ++process_count) {
+						processes[process_count] = list_front(&g_queues[i]);
+					  list_shift(&g_queues[i]);
+						if (processes[process_count]->pid == process_id) {
+								found_process = 1;
+								--process_count;
+						}
+				}
+				for (int j = 0; j < process_count; ++j) {
+						list_push(&g_queues[i], processes[j]);
+				}
+		}
+		
+		return found_process ? RTX_OK : RTX_ERROR;
+}
+
 int k_enqueue_process(int process_id) {
-    for (int i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
+    for (int i = 0; i < NUM_PROCS; ++i) {
         if (g_proc_table[i].m_pid == process_id) {
             switch (gp_pcbs[i]->state) {
                 case NEW:
@@ -107,7 +128,7 @@ int set_process_priority(int process_id, int priority) {
             g_proc_table[i].m_priority = priority;
 
             if (g_proc_table[i].m_pid != gp_current_process->pid) {
-                // TODO: remove m_pid from queues
+                k_dequeue_process(g_proc_table[i].m_pid);
                 k_enqueue_process(g_proc_table[i].m_pid);
             }
             return RTX_OK;

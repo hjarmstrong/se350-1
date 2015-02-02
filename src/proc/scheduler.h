@@ -34,6 +34,7 @@ extern int _scheduler_init(U32 p_func) __SVC_0;
 PCB *scheduler(void);
 
 int k_enqueue_process(int process_id);
+int k_dequeue_process(int process_id);
 int k_unblock_queue(int blocked_queue);
 
 /* Priority Methods */

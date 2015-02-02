@@ -220,8 +220,10 @@ void *list_next_segment(void *start_of_data) {
 
 #ifdef DEBUG
 void print_list(List *list) {
+	  // TODO: fix when using list for things other than processes.
+	
     PCB *process;
-		PCB *processes[20];
+		PCB *processes[NUM_PROCS];
 		int j = 0;
 		while (!list_empty(list)) {
 				process = list_front(list);
