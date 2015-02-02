@@ -26,6 +26,8 @@ int test_status[NUM_TESTS] = {0}; //0 means not yet run, 1 means success, -1 mea
  */
 
 void set_test_procs() {
+	  int i;
+	
     g_test_procs[0].mpf_start_pc = &proc_1;
     g_test_procs[1].mpf_start_pc = &proc_2;
     g_test_procs[2].mpf_start_pc = &proc_3;
@@ -33,7 +35,7 @@ void set_test_procs() {
     g_test_procs[4].mpf_start_pc = &proc_5;
     g_test_procs[5].mpf_start_pc = &proc_6;
 
-    for (int i = 0; i < NUM_TEST_PROCS; ++i) {
+    for (i = 0; i < NUM_TEST_PROCS; ++i) {
         g_test_procs[i].m_pid = i + 1;
         g_test_procs[i].m_stack_size = STACK_SIZE;
         g_test_procs[i].m_priority = PRIORITY_HIGHEST;
@@ -49,6 +51,7 @@ void proc_1(void) {
 	  int failures = 0;
 		int passes = 0;
 		int pid = 1;
+	  int i;
 
 		int char_offset = 48;
 
@@ -60,7 +63,7 @@ void proc_1(void) {
         release_processor();
     }
 
-		for (int i = 0; i < NUM_TESTS; i++) {
+		for (i = 0; i < NUM_TESTS; i++) {
 				uart0_put_string("G007_test: test ");
 				uart0_put_char(i + 1 + 48);
 				if (test_status[i] == 1) {
@@ -94,17 +97,18 @@ void proc_1(void) {
 //Test that allocated memory is not overwritten
 void proc_2(void) {
 		int pid = 2;
+	  int i;
 	
 		int *ptr = request_memory_block();
 		*ptr = 42;
 		
-		for(int i = 0; i < 10; i++){//give other processes time to adjust memory
+		for (i = 0; i < 10; i++){//give other processes time to adjust memory
 				release_processor();
 		}
 		
-		if(*ptr == 42){ //TEST 2: Allocated memory is not corrupted
+		if (*ptr == 42) { //TEST 2: Allocated memory is not corrupted
 				test_status[1] = 1;
-		}else{
+		} else {
 				test_status[1] = -1;
 		}
 		
@@ -188,9 +192,10 @@ void proc_4(void) {//Part 2 of preemption tests for priority change
 void proc_5(void) {//Part 1 of out of memory blocking queue tests
 		void *allocated_memory[MANY_MEMORY_BLOCKS];
 		int pid = 5;
+	  int i;
 
 		//grab more than 1/2 the memory
-		for(int i = 0; i < MANY_MEMORY_BLOCKS; i++){
+		for(i = 0; i < MANY_MEMORY_BLOCKS; i++){
 				allocated_memory[i] = request_memory_block();
 		}
 
@@ -200,12 +205,12 @@ void proc_5(void) {//Part 1 of out of memory blocking queue tests
     if (RTX_OK == set_process_priority(pid, PRIORITY_HIGH)) {
         release_processor();
     }
-		if(test_status[4] != -1){//if proc_6 is not blocked, it will fail the test
+		if (test_status[4] != -1){//if proc_6 is not blocked, it will fail the test
 				test_status[4] = 1;//otherwise, we know it was blocked, and should pass the test
 		}
 
 		//release memory to unblock proc_6
-    for(int i = 0; i < MANY_MEMORY_BLOCKS; i++){
+    for (i = 0; i < MANY_MEMORY_BLOCKS; i++){
         release_memory_block(allocated_memory[i]);
     }
 		
@@ -222,23 +227,24 @@ void proc_5(void) {//Part 1 of out of memory blocking queue tests
 void proc_6(void) {//Part 2 of out of memory blocking queue tests
 		void *allocated_memory[MANY_MEMORY_BLOCKS];
 		int pid = 6;
+	  int i;
 	
 		while(test_status[4] != 2){//wait for proc_5 to run
 				release_processor();
 		}
 		
 		//Try to get more memory than is left after proc_5. This process should get blocked at some point in this loop
-		for(int i = 0; i < MANY_MEMORY_BLOCKS; i++){
+		for (i = 0; i < MANY_MEMORY_BLOCKS; i++){
 				allocated_memory[i] = request_memory_block();
 		}
 		//proc_5 runs when this is blocked, marks test passed, then releases memory so this process will finish running
 		
-		if(test_status[4] != 1){//This would indicate that this process never got blocked
+		if (test_status[4] != 1){//This would indicate that this process never got blocked
 				test_status[4] = -1;//if this process did not get blocked, the test should fail
 		}
 		
 		//release memory to clean up
-		for(int i = 0; i < MANY_MEMORY_BLOCKS; i++){
+		for (i = 0; i < MANY_MEMORY_BLOCKS; i++){
 				release_memory_block(allocated_memory[i]);
 		}
 		

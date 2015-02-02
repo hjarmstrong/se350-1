@@ -13,6 +13,7 @@ void *heap_low_address;
 void print_memory() {
     MemNode *ptr = NULL;
     int is_free = 1;
+	  int i;
 
     printf("\n\r");
 
@@ -33,7 +34,7 @@ void print_memory() {
         printf("print_memory: 0x%x (%s) -> 0x%x\n\r", ptr, is_free ? "free" : "res.", ptr->next);
     }
 
-    for (int i = 0; i < NUM_PROCS; ++i) {
+    for (i = 0; i < NUM_PROCS; ++i) {
         printf("print_memory: proc_%d has SP 0x%x\n\r",
           i,
           gp_pcbs[i]->sp);
@@ -49,6 +50,8 @@ void print_memory() {
  * Must be called before k_alloc_stack(...)
  */
 void k_memory_init(void) {
+	  int i;
+	
     /* Allocate space for system variables, set up heap_low_address */
     U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 
@@ -59,7 +62,7 @@ void k_memory_init(void) {
     gp_pcbs = (PCB **)p_end;
     p_end += NUM_PROCS * sizeof(PCB *);
 
-    for (int i = 0; i < NUM_PROCS; i++ ) {
+    for (i = 0; i < NUM_PROCS; i++ ) {
         gp_pcbs[i] = (PCB *)p_end;
         p_end += sizeof(PCB);
     }

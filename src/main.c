@@ -16,15 +16,16 @@ int main() {
     SystemInit();
 
 		uart0_init();
-    init_printf(NULL);
 	
+	  // Printf operations are noops unless DEBUG is set.
+    init_printf(NULL);
 		printf("\n\r\n\r");
 
     memory_init();
     list_init();
 
 #ifdef DEBUG
-    run_list_tests();
+    // run_list_tests();
 #endif // DEBUG
 
 		process_init();

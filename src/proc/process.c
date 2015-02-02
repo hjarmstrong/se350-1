@@ -20,6 +20,8 @@ PCB *gp_current_process = NULL;
  */
 void k_process_init() {
     U32 *sp;
+	  int i;
+	  int j;
 
     // Initialize null process table
     g_proc_table[0].m_pid = 0;
@@ -29,7 +31,7 @@ void k_process_init() {
 
     // Initialize test process tables
     set_test_procs();
-    for (int i = 0; i < NUM_TEST_PROCS; ++i) {
+    for (i = 0; i < NUM_TEST_PROCS; ++i) {
         g_proc_table[i + 1].m_pid = g_test_procs[i].m_pid;
         g_proc_table[i + 1].m_stack_size = g_test_procs[i].m_stack_size;
         g_proc_table[i + 1].mpf_start_pc = g_test_procs[i].mpf_start_pc;
@@ -37,14 +39,14 @@ void k_process_init() {
     }
 
     // Initilize all processes
-    for (int i = 0; i < NUM_PROCS; i++) {
+    for (i = 0; i < NUM_PROCS; i++) {
         gp_pcbs[i]->pid = g_proc_table[i].m_pid;
         gp_pcbs[i]->state = NEW;
 
         sp = k_alloc_stack((g_proc_table[i]).m_stack_size);
         *(--sp) = INITIAL_xPSR;      // user process initial xPSR
         *(--sp) = (U32)((g_proc_table[i]).mpf_start_pc); // PC contains the entry point of the process
-        for (int j = 0; j < 6; ++j) { // R0-R3, R12, LR are cleared with 0
+        for (j = 0; j < 6; ++j) { // R0-R3, R12, LR are cleared with 0
             *(--sp) = 0x0;
         }
         gp_pcbs[i]->sp = sp;
@@ -63,7 +65,6 @@ int k_process_switch(PCB *p_pcb_old) {
             if (p_pcb_old->state == RUNNING) {
                 p_pcb_old->state = READY;
             }
-            k_enqueue_process(p_pcb_old->pid);
 
             p_pcb_old->sp = ((U32 *)__get_MSP());
 				}
@@ -78,7 +79,6 @@ int k_process_switch(PCB *p_pcb_old) {
             if (p_pcb_old->state == RUNNING) {
                 p_pcb_old->state = READY;
             }
-            k_enqueue_process(p_pcb_old->pid);
 
             p_pcb_old->sp = (U32 *) __get_MSP(); // save the old process's sp
             gp_current_process->state = RUNNING;
@@ -94,6 +94,7 @@ int k_process_switch(PCB *p_pcb_old) {
 
 int k_release_processor(void) {
     PCB *p_pcb_old = gp_current_process;
+    k_enqueue_process(p_pcb_old->pid);
     gp_current_process = scheduler();
 
     // revert back to the old process if the scheduler cannot

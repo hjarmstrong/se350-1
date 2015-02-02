@@ -1,27 +1,24 @@
 #include "scheduler.h"
 
-#ifdef DEBUG
-   #include "../printf.h"
-#endif // DEBUG
+#include "../printf.h"
 
 List g_queues[NUM_QUEUES];
 
 void k_scheduler_init() {
+	  int i;
+	
     // Add all processes to ready queues
-    for (int i = 0; i < NUM_PROCS; ++i) {
+    for (i = 0; i < NUM_PROCS; ++i) {
         k_enqueue_process(g_proc_table[i].m_pid);
-#ifdef DEBUG
-        //printf("Front of queue %d:", 0);
-        //print_list(&g_queues[0]);
-        //printf("Front of queue %d:", 4);
-        //print_list(&g_queues[4]);
-#endif // DEBUG
     } 
 }
 
 int k_dequeue_process(int process_id) {
 		int found_process = 0;
-		for (int i = 0; i < NUM_QUEUES && !found_process; ++i) {
+	  int i;
+	  int j;
+	
+		for (i = 0; i < NUM_QUEUES && !found_process; ++i) {
 				PCB *processes[NUM_PROCS];
 				int process_count;
 				for (process_count = 0; !list_empty(&g_queues[i]); ++process_count) {
@@ -32,7 +29,7 @@ int k_dequeue_process(int process_id) {
 								--process_count;
 						}
 				}
-				for (int j = 0; j < process_count; ++j) {
+				for (j = 0; j < process_count; ++j) {
 						list_push(&g_queues[i], processes[j]);
 				}
 		}
@@ -41,7 +38,9 @@ int k_dequeue_process(int process_id) {
 }
 
 int k_enqueue_process(int process_id) {
-    for (int i = 0; i < NUM_PROCS; ++i) {
+    int i;
+	
+	  for (i = 0; i < NUM_PROCS; ++i) {
         if (g_proc_table[i].m_pid == process_id) {
             switch (gp_pcbs[i]->state) {
                 case NEW:
@@ -82,15 +81,16 @@ int k_unblock_queue(int blocked_queue) {
 
 PCB *scheduler(void) {
     PCB *process;
+	  int i;
 
 #ifdef DEBUG
-    //for (int i = 0; i < NUM_QUEUES; ++i) {
-    //    printf("Queue %d:", i);
-    //    print_list(&g_queues[i]);
-    //}
+    for (i = 0; i < NUM_QUEUES; ++i) {
+        printf("Queue %d:", i);
+        print_list(&g_queues[i]);
+    }
 #endif // DEBUG
 
-    for (int i = 0; i < NUM_READY_QUEUES; ++i) {
+    for (i = 0; i < NUM_READY_QUEUES; ++i) {
         if (!list_empty(&g_queues[i])) {
             process = list_front(&g_queues[i]);
             list_shift(&g_queues[i]);
@@ -102,7 +102,9 @@ PCB *scheduler(void) {
 }
 
 int get_process_priority(int process_id) {
-    for (int i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
+    int i;
+	
+	  for (i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
         if (g_proc_table[i].m_pid == process_id) {
             return g_proc_table[i].m_priority;
         }
@@ -112,6 +114,8 @@ int get_process_priority(int process_id) {
 }
 
 int set_process_priority(int process_id, int priority) {
+	  int i;
+	
     if (process_id == 0 && priority != 4) {
         return RTX_ERROR_SCHEDULER_CHANGING_NULL_PROCESS_PRIORITY;
     }
@@ -123,7 +127,7 @@ int set_process_priority(int process_id, int priority) {
         return RTX_ERROR_SCHEDULER_PRIORITY_DOESNT_EXIST;
     }
 
-    for (int i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
+    for (i = 0; i < NUM_QUEUES; ++i) {
         if (g_proc_table[i].m_pid == process_id) {
             g_proc_table[i].m_priority = priority;
 
@@ -131,6 +135,7 @@ int set_process_priority(int process_id, int priority) {
                 k_dequeue_process(g_proc_table[i].m_pid);
                 k_enqueue_process(g_proc_table[i].m_pid);
             }
+						release_processor();
             return RTX_OK;
         }
     }

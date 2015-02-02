@@ -347,7 +347,7 @@
             <uThumb>0</uThumb>
             <uSurpInc>0</uSurpInc>
             <VariousControls>
-              <MiscControls>--c99</MiscControls>
+              <MiscControls></MiscControls>
               <Define></Define>
               <Undefine></Undefine>
               <IncludePath></IncludePath>
@@ -457,11 +457,6 @@
               <FilePath>.\src\proc\process.c</FilePath>
             </File>
             <File>
-              <FileName>user_process.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\proc\user_process.c</FilePath>
-            </File>
-            <File>
               <FileName>sys_process.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\proc\sys_process.c</FilePath>
@@ -470,6 +465,11 @@
               <FileName>scheduler.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\proc\scheduler.c</FilePath>
+            </File>
+            <File>
+              <FileName>usr_proc_A.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\auto_tests\usr_proc_A.c</FilePath>
             </File>
           </Files>
         </Group>
