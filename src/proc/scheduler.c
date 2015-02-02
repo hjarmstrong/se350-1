@@ -1,11 +1,21 @@
 #include "scheduler.h"
 
+#ifdef DEBUG
+   #include "../printf.h"
+#endif // DEBUG
+
 List g_queues[NUM_QUEUES];
 
 void k_scheduler_init() {
     // Add all processes to ready queues
     for (int i = 0; i < NUM_PROCS; ++i) {
         k_enqueue_process(g_proc_table[i].m_pid);
+#ifdef DEBUG
+        //printf("Front of queue %d:", 0);
+        //print_list(&g_queues[0]);
+        //printf("Front of queue %d:", 4);
+        //print_list(&g_queues[4]);
+#endif // DEBUG
     } 
 }
 
@@ -52,6 +62,13 @@ int k_unblock_queue(int blocked_queue) {
 PCB *scheduler(void) {
     PCB *process;
 
+#ifdef DEBUG
+    //for (int i = 0; i < NUM_QUEUES; ++i) {
+    //    printf("Queue %d:", i);
+    //    print_list(&g_queues[i]);
+    //}
+#endif // DEBUG
+
     for (int i = 0; i < NUM_READY_QUEUES; ++i) {
         if (!list_empty(&g_queues[i])) {
             process = list_front(&g_queues[i]);
@@ -89,8 +106,10 @@ int set_process_priority(int process_id, int priority) {
         if (g_proc_table[i].m_pid == process_id) {
             g_proc_table[i].m_priority = priority;
 
-            k_enqueue_process(g_proc_table[i].m_pid);
-            k_release_processor();
+            if (g_proc_table[i].m_pid != gp_current_process->pid) {
+                // TODO: remove m_pid from queues
+                k_enqueue_process(g_proc_table[i].m_pid);
+            }
             return RTX_OK;
         }
     }

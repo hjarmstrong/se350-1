@@ -41,23 +41,24 @@ void set_test_procs() {
 
 //Prints test results, tests that a process runs
 void proc_1(void) {
-
 	  int failures = 0;
 		int passes = 0;
 		int pid = 1;
 		uart0_put_string("G007_test: START\n\r");
 
 		test_status[0] = 1;//TEST 1: a process is started and runs
-	
-		set_process_priority(pid, PRIORITY_LOW);//Done test. When everything else is done too, this will run again, printing the results
-		
-		for(int i = 0; i < NUM_TESTS; i++){
+
+    if (RTX_OK == set_process_priority(pid, PRIORITY_LOW)) {
+        release_processor();
+    }
+
+		for (int i = 0; i < NUM_TESTS; i++) {
 				uart0_put_string("G007_test: test ");
 				uart0_put_char(i + 1 + 48);
-				if(test_status[i] == 1){
+				if (test_status[i] == 1) {
 						uart0_put_string(" OK\n\r");
 						passes++;
-				}else{
+				} else {
 						uart0_put_string(" FAIL\n\r");
 						failures++;
 				}
@@ -102,7 +103,10 @@ void proc_2(void) {
 		release_memory_block(ptr);//return to initial state
 		
 
-		set_process_priority(pid, PRIORITY_LOW);//Done testing, get out of the way
+    if (RTX_OK == set_process_priority(pid, PRIORITY_LOW)) {
+        release_processor();
+    }
+		
     while (1) {
         release_processor();
     }
@@ -112,7 +116,10 @@ void proc_3(void) {//Part 1 of preemption tests for priority change
 		int pid = 3;
 	
 		test_status[2] = 2;//2 tells proc_4 that this process has run
-		set_process_priority(pid, PRIORITY_MEDIUM);//should cause process to be prempted, so proc_4 will run before it runs again.
+    if (RTX_OK == set_process_priority(pid, PRIORITY_MEDIUM)) {
+        release_processor();
+    }
+		//set_process_priority(pid, 2);
 		if(test_status[2] != 1){//proc_4 will set test_status[2] to 1 if it runs before we get to this line 
 				test_status[2] = -1;
 		}
@@ -124,9 +131,11 @@ void proc_3(void) {//Part 1 of preemption tests for priority change
 		}
 		if(test_status[3] == 2){//TEST 4: proc_4 was preempted by changing proc_3 priority up
 				test_status[3] = 1;
-		}//Otherwise, proc_4 will indicate that the test failed
-		
-		set_process_priority(pid, PRIORITY_LOW);//Done testing, get out of the way
+		}
+
+    if (RTX_OK == set_process_priority(pid, PRIORITY_LOW)) {
+        release_processor();
+    }
     while (1) {
         release_processor();
     }
@@ -139,20 +148,30 @@ void proc_4(void) {//Part 2 of preemption tests for priority change
 		while(test_status[2] == 0){//Wait for proc_3 to run
 				release_processor();
 		}
+		
 		if(test_status[2] == 2){//TEST 3: proc_3 was preempted when changing it's priority down, or else it would have already set test_status[2] to -1
 				test_status[2] = 1;
 		}//Otherwise, proc_3 will indicate that the test failed
 		
 		//Begin test 4
 		
-		set_process_priority(pid, PRIORITY_HIGH);//set priority down so that proc_3 can be set to higher priority
+		//set priority down so that proc_3 can be set to higher priority
+    if (RTX_OK == set_process_priority(pid, PRIORITY_HIGH)) {
+        release_processor();
+    }
 		test_status[3] = 2;//indicates that this has run
-		set_process_priority(part_1_pid, PRIORITY_HIGHEST);//Should be preempted by proc_3
+		//Should be preempted by proc_3
+    if (RTX_OK == set_process_priority(part_1_pid, PRIORITY_HIGHEST)) {
+        release_processor();
+    }
+		//set_process_priority(part_1_pid, 0);
 		if(test_status[3] != 1){//proc_3 will set test_status if this process is preempted...
 				test_status[3] = -1;//...so if it doesn't, fail the test
 		}
-		
-		set_process_priority(pid, PRIORITY_LOW);//Done testing, get out of the way
+
+    if (RTX_OK == set_process_priority(pid, PRIORITY_LOW)) {
+        release_processor();
+    }
     while (1) {
         release_processor();
     }
@@ -168,7 +187,11 @@ void proc_5(void) {//Part 1 of out of memory blocking queue tests
 		}	
 		
 		test_status[4] = 2; //Indicates to proc_6 that this has run
-		set_process_priority(pid, PRIORITY_HIGH); //change priority down so that this process won't run until proc_6 is blocked
+		
+		//change priority down so that this process won't run until proc_6 is blocked
+    if (RTX_OK == set_process_priority(pid, PRIORITY_HIGH)) {
+        release_processor();
+    }
 		if(test_status[4] != -1){//if proc_6 is not blocked, it will fail the test
 				test_status[4] = 1;//otherwise, we know it was blocked, and should pass the test
 		}
@@ -178,7 +201,11 @@ void proc_5(void) {//Part 1 of out of memory blocking queue tests
 				release_memory_block(allocated_memory[i]);
 		}
 		
-		set_process_priority(pid, PRIORITY_LOW);//Done testing, get out of the way
+		if (RTX_OK == set_process_priority(pid, PRIORITY_LOW)) {
+        release_processor();
+    }
+		
+		//Done testing, get out of the way
     while (1) {
         release_processor();
     }
@@ -207,7 +234,10 @@ void proc_6(void) {//Part 2 of out of memory blocking queue tests
 				release_memory_block(allocated_memory[i]);
 		}
 		
-		set_process_priority(pid, PRIORITY_LOW);//Done testing, get out of the way
+		//Done testing, get out of the way
+    if (RTX_OK == set_process_priority(pid, PRIORITY_LOW)) {
+        release_processor();
+    }
 
     while (1) {
         release_processor();

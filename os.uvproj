@@ -466,6 +466,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\proc\sys_process.c</FilePath>
             </File>
+            <File>
+              <FileName>scheduler.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\proc\scheduler.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
