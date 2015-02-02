@@ -64,8 +64,8 @@ PCB *scheduler(void) {
 
 #ifdef DEBUG
     //for (int i = 0; i < NUM_QUEUES; ++i) {
-        //printf("Front of queue %d:", i);
-        //print_list(&g_queues[i]);
+    //    printf("Queue %d:", i);
+    //    print_list(&g_queues[i]);
     //}
 #endif // DEBUG
 
@@ -106,8 +106,10 @@ int set_process_priority(int process_id, int priority) {
         if (g_proc_table[i].m_pid == process_id) {
             g_proc_table[i].m_priority = priority;
 
-            k_enqueue_process(g_proc_table[i].m_pid);
-            k_release_processor();
+            if (g_proc_table[i].m_pid != gp_current_process->pid) {
+                // TODO: remove m_pid from queues
+                k_enqueue_process(g_proc_table[i].m_pid);
+            }
             return RTX_OK;
         }
     }

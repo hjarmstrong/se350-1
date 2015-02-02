@@ -26,9 +26,9 @@ typedef struct ListNode {
 // Gives the address of the 0th element in p_node
 #define NODE_START(p_node) ((void **)(((U8 *)p_node) + sizeof(ListNode)))
 
-void *list_mem_ptr = NULL;
-
 ListNode *request_list_node(void) {
+		static void *list_mem_ptr = NULL;
+
 		if (list_mem_ptr == NULL) {
 				list_mem_ptr = ((void *)(((U8 *)heap_low_address) - LIST_MEMORY_SIZE));
 		}

@@ -81,7 +81,6 @@ void* k_request_memory_block(void) {
 
     while (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
         gp_current_process->state = BLOCKED;
-        k_enqueue_process(gp_current_process->pid);
 
         k_release_processor();
     }

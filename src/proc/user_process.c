@@ -38,16 +38,18 @@ void set_test_procs() {
 
 //Prints test results, tests that a process runs
 void proc_1(void) {
-
 	  int failures = 0;
 		int passes = 0;
 		int pid = 1;
 		uart0_put_string("G007_test: START\n\r");
 
 		test_status[0] = 1;//TEST 1: a process is started and runs
-	
-		set_process_priority(pid, 3);//Done test. When everything else is done too, this will run again, printing the results
-		
+
+    if (RTX_OK == set_process_priority(pid, 3)) {
+        release_processor();
+    }
+		//set_process_priority(pid, 3);//Done test. When everything else is done too, this will run again, printing the results
+
 		for(int i = 0; i < NUM_TESTS; i++){
 				uart0_put_string("G007_test: test ");
 				uart0_put_char(i + 1 + 48);
@@ -97,7 +99,10 @@ void proc_2(void) {
 		}
 		
 
-		set_process_priority(pid, 3);//Done testing, get out of the way
+    if (RTX_OK == set_process_priority(pid, 3)) {
+        release_processor();
+    }
+		//set_process_priority(pid, 3);//Done testing, get out of the way
     while (1) {
         release_processor();
     }
@@ -107,7 +112,10 @@ void proc_3(void) {//Part 1 of preemption tests for priority change
 		int pid = 3;
 	
 		test_status[2] = 2;//2 tells proc_4 that this process has run
-		set_process_priority(pid, 2);
+    if (RTX_OK == set_process_priority(pid, 2)) {
+        release_processor();
+    }
+		//set_process_priority(pid, 2);
 		if(test_status[2] != 1){//proc_4 will set this to 1 if it runs before we get to this line
 				test_status[2] = -1;
 		}
@@ -118,8 +126,11 @@ void proc_3(void) {//Part 1 of preemption tests for priority change
 		if(test_status[3] == 2){//TEST 4: proc_4 was preempted by changing proc_3 priority up
 				test_status[3] = 1;
 		}
-		
-		set_process_priority(pid, 3);//Done testing, get out of the way
+
+    if (RTX_OK == set_process_priority(pid, 3)) {
+        release_processor();
+    }
+		//set_process_priority(pid, 3);//Done testing, get out of the way
     while (1) {
         release_processor();
     }
@@ -135,15 +146,24 @@ void proc_4(void) {//Part 2 of preemption tests for priority change
 		if(test_status[2] == 2){//TEST 3: proc_3 was preempted when changing it's priority down
 				test_status[2] = 1;//
 		}
-		
-		set_process_priority(pid, 1);//set priority down so that proc_3 can be set to higher priority
+
+    if (RTX_OK == set_process_priority(pid, 1)) {
+        release_processor();
+    }
+		//set_process_priority(pid, 1);//set priority down so that proc_3 can be set to higher priority
 		test_status[3] = 2;//indicates that this has run
-		set_process_priority(part_1_pid, 0);
+    if (RTX_OK == set_process_priority(part_1_pid, 0)) {
+        release_processor();
+    }
+		//set_process_priority(part_1_pid, 0);
 		if(test_status[3] != 1){//proc_3 will set test_status if this process is preempted
 				test_status[3] = -1;
 		}
-		
-		set_process_priority(pid, 3);//Done testing, get out of the way
+
+    if (RTX_OK == set_process_priority(pid, 3)) {
+        release_processor();
+    }
+		//set_process_priority(pid, 3);//Done testing, get out of the way
     while (1) {
         release_processor();
     }
@@ -151,8 +171,11 @@ void proc_4(void) {//Part 2 of preemption tests for priority change
 
 void proc_5(void) {
 		int pid = 5;
-		
-		set_process_priority(pid, 3);//Done testing, get out of the way
+
+    if (RTX_OK == set_process_priority(pid, 3)) {
+        release_processor();
+    }
+		//set_process_priority(pid, 3);//Done testing, get out of the way
     while (1) {
         release_processor();
     }
@@ -160,9 +183,11 @@ void proc_5(void) {
 
 void proc_6(void) {
 		int pid = 6;
-		
-		set_process_priority(pid, 3);//Done testing, get out of the way
 
+    if (RTX_OK == set_process_priority(pid, 3)) {
+        release_processor();
+    }
+		//set_process_priority(pid, 3);//Done testing, get out of the way
     while (1) {
         release_processor();
     }

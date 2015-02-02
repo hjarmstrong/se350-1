@@ -30,7 +30,10 @@
  */
 
 #include "printf.h"
+#include "stdefs.h"
 #include "uart_polling.h"
+
+#ifdef DEBUG
 
 typedef void (*putcf) (void*,char);
 static putcf stdout_putf;
@@ -245,3 +248,13 @@ void tfp_sprintf(char* s,char *fmt, ...)
 	putcp(&s,0);
 	va_end(va);
 	}
+
+#else
+void init_printf(void* putp)
+{
+}
+	
+void tfp_printf(char *fmt, ...)
+{
+}
+#endif
