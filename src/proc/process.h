@@ -31,7 +31,7 @@ typedef struct PROC_INIT {
 /* Global Variables */
 
 #define NUM_PROCS (1 + NUM_TEST_PROCS)
-#define STACK_SIZE 0x200
+#define STACK_SIZE 0x100
 
 extern PCB **gp_pcbs;
 extern U32 *gp_stack;

@@ -1,5 +1,6 @@
 #include <LPC17xx.h>
 #include "../mem/mem.h"
+#include "../printf.h"
 #include "process.h"
 #include "scheduler.h"
 #include "../stdefs.h"
@@ -43,7 +44,7 @@ void k_process_init() {
         sp = k_alloc_stack((g_proc_table[i]).m_stack_size);
         *(--sp) = INITIAL_xPSR;      // user process initial xPSR
         *(--sp) = (U32)((g_proc_table[i]).mpf_start_pc); // PC contains the entry point of the process
-        for (int j = 0; j < 6; j++ ) { // R0-R3, R12(interprocess scratch register), R14(Link Register) are cleared with 0
+        for (int j = 0; j < 6; ++j) { // R0-R3, R12, LR are cleared with 0
             *(--sp) = 0x0;
         }
         gp_pcbs[i]->sp = sp;

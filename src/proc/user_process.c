@@ -1,4 +1,5 @@
 #include "../mem/mem.h"
+#include "../printf.h"
 #include "scheduler.h"
 #include "../uart_polling.h"
 #include "user_process.h"
@@ -37,6 +38,10 @@ void set_test_procs() {
         g_test_procs[i].m_stack_size = STACK_SIZE;
         g_test_procs[i].m_priority = PRIORITY_HIGHEST;
     }
+		
+    // These tests use a greater amount of memory than the standard STACK_SIZE
+    g_test_procs[4].m_stack_size = 0x400;
+    g_test_procs[5].m_stack_size = 0x400;
 }
 
 //Prints test results, tests that a process runs
@@ -44,6 +49,9 @@ void proc_1(void) {
 	  int failures = 0;
 		int passes = 0;
 		int pid = 1;
+
+		int char_offset = 48;
+
 		uart0_put_string("G007_test: START\n\r");
 
 		test_status[0] = 1;//TEST 1: a process is started and runs
@@ -65,16 +73,16 @@ void proc_1(void) {
 		}
 		
 		uart0_put_string("G007_test: ");
-		uart0_put_char(passes + 48);
+		uart0_put_char(passes + char_offset);
 		uart0_put_string("/");
-		uart0_put_char(NUM_TESTS + 48);
+		uart0_put_char(NUM_TESTS + char_offset);
 		uart0_put_string(" tests OK\n\r");
 		
 		uart0_put_string("G007_test: ");
-		uart0_put_char(failures + 48);
+		uart0_put_char(failures + char_offset);
 		uart0_put_string("/");
-		uart0_put_char(NUM_TESTS + 48);
-		uart0_put_string(" tests FAILS\n\r");
+		uart0_put_char(NUM_TESTS + char_offset);
+		uart0_put_string(" tests FAIL\n\r");
 		
 	  uart0_put_string("G007_test: END\n\r");
 		
@@ -180,14 +188,14 @@ void proc_4(void) {//Part 2 of preemption tests for priority change
 void proc_5(void) {//Part 1 of out of memory blocking queue tests
 		void *allocated_memory[MANY_MEMORY_BLOCKS];
 		int pid = 5;
-	
+
 		//grab more than 1/2 the memory
 		for(int i = 0; i < MANY_MEMORY_BLOCKS; i++){
 				allocated_memory[i] = request_memory_block();
-		}	
-		
+		}
+
 		test_status[4] = 2; //Indicates to proc_6 that this has run
-		
+
 		//change priority down so that this process won't run until proc_6 is blocked
     if (RTX_OK == set_process_priority(pid, PRIORITY_HIGH)) {
         release_processor();
@@ -195,11 +203,11 @@ void proc_5(void) {//Part 1 of out of memory blocking queue tests
 		if(test_status[4] != -1){//if proc_6 is not blocked, it will fail the test
 				test_status[4] = 1;//otherwise, we know it was blocked, and should pass the test
 		}
-		
+
 		//release memory to unblock proc_6
-		for(int i = 0; i < MANY_MEMORY_BLOCKS; i++){
-				release_memory_block(allocated_memory[i]);
-		}
+    for(int i = 0; i < MANY_MEMORY_BLOCKS; i++){
+        release_memory_block(allocated_memory[i]);
+    }
 		
 		if (RTX_OK == set_process_priority(pid, PRIORITY_LOW)) {
         release_processor();

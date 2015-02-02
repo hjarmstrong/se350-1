@@ -35,6 +35,6 @@ int main() {
     //run_mem_tests();
 #endif // DEBUG
 
-		release_processor();
+    release_processor();
     return RTX_OK;
 }

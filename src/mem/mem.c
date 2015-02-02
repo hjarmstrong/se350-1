@@ -1,17 +1,46 @@
 #include "../list/list.h"
 #include "mem.h"
+#include "../printf.h"
 #include "../proc/process.h"
 #include "../proc/scheduler.h"
 #include "../stdefs.h"
-
-#ifdef DEBUG
-    #include "../printf.h"
-#endif // DEBUG
 
 MemNode *root;
 
 void *heap_high_address;
 void *heap_low_address;
+
+void print_memory() {
+    MemNode *ptr = NULL;
+    int is_free = 1;
+
+    printf("\n\r");
+
+    printf("print_memory: PCB: 0x%x -> 0x%x\n\r",
+      (U8 *)&Image$$RW_IRAM1$$ZI$$Limit,
+      heap_low_address);
+    printf("print_memory: Stacks: 0x%x -> 0x%x\n\r",
+      gp_stack,
+      (U32 *)0x10008000);
+
+    if (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
+        printf("print_memory: FULL!\n\r");
+    }
+
+    __disable_irq();
+
+    for (ptr = root; ptr != heap_low_address; ptr = ptr->next, is_free = !is_free) {
+        printf("print_memory: 0x%x (%s) -> 0x%x\n\r", ptr, is_free ? "free" : "res.", ptr->next);
+    }
+
+    for (int i = 0; i < NUM_PROCS; ++i) {
+        printf("print_memory: proc_%d has SP 0x%x\n\r",
+          i,
+          gp_pcbs[i]->sp);
+    }
+
+    __enable_irq();
+}
 
 /**
  * Allocate space for system variables, set up heap_low_address, set
@@ -39,6 +68,9 @@ void k_memory_init(void) {
     // TODO: make this dynamic
     p_end += LIST_MEMORY_SIZE;
 
+    /* 4 bytes padding */
+    p_end += 4;
+		
     heap_low_address = p_end;
 
 
@@ -73,11 +105,15 @@ void* k_request_memory_block(void) {
     MemNode *prev = NULL;
     MemNode *ptr = NULL;
 	  
-		if (!is_init) {
-				root = (void *)(((U8 *)heap_high_address) - HEADER_SIZE);
-				root->next = heap_low_address;
-				is_init = 1;
-		}
+    if (!is_init) {
+        root = (void *)(((U8 *)heap_high_address) - HEADER_SIZE);
+        root->next = heap_low_address;
+        is_init = 1;
+    }
+
+#ifdef DEBUG
+    //print_memory();
+#endif // DEBUG
 
     while (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
         gp_current_process->state = BLOCKED;
@@ -212,10 +248,10 @@ int k_release_memory_block(void* mem_blk) {
         ptr->next = middle_blk;
     }
 
-    k_unblock_queue(PRIORITY_BLOCKED_ON_MEMORY);
-
     __enable_irq();
 
-		release_processor();
+    k_unblock_queue(PRIORITY_BLOCKED_ON_MEMORY);
+
+    k_release_processor();
     return RTX_OK;
 }
