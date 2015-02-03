@@ -467,9 +467,9 @@
               <FilePath>.\src\proc\scheduler.c</FilePath>
             </File>
             <File>
-              <FileName>usr_proc_A.c</FileName>
+              <FileName>usr_proc_custom.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\auto_tests\usr_proc_A.c</FilePath>
+              <FilePath>.\auto_tests\usr_proc_custom.c</FilePath>
             </File>
           </Files>
         </Group>

@@ -5,6 +5,8 @@
 #ifndef USER_PROCESS_H
 #define USER_PROCESS_H
 
+#include "rtx.h"
+
 /* User Process Methods  */
 extern PROC_INIT g_test_procs[NUM_TEST_PROCS];
 

@@ -1,6 +1,8 @@
 #include "uart_polling.h"
-#include "user_process.h"
+#include "usr_proc.h"
 #include "rtx.h"
+
+#include "../src/proc/process.h"
 
 #define MANY_MEMORY_BLOCKS 150 //should be more than 1/2 the available memory, but not all of it
 #define NUM_TESTS 5
