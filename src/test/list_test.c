@@ -31,7 +31,7 @@ void test_one_item() {
 
 void test_push_shift_many_items() {
     List l = list_new();
-	  unsigned int i;
+    unsigned int i;
 
     for (i = 1; i < 100; ++i) {
         list_push(&l, (void *)i);
@@ -49,7 +49,7 @@ void test_push_shift_many_items() {
 
 void test_push_pop_many_items() {
     List l = list_new();
-	  unsigned int i;
+    unsigned int i;
 
     for (i = 1; i < 100; ++i) {
         list_push(&l, (void *)i);

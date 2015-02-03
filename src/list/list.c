@@ -1,3 +1,7 @@
+/**
+ * list.c -- Simple segmented linked list used by the RTX
+ */
+
 #include "list.h"
 #include "../mem/mem.h"
 #include "../printf.h"
@@ -12,7 +16,7 @@ typedef struct ListNode {
     struct ListNode *next;
     struct ListNode *prev;
     U8 count;
-	  void *data;
+    void *data;
 } ListNode;
 
 // Size of each ListNode
@@ -22,31 +26,31 @@ typedef struct ListNode {
 #define NODE_SIZE ((int)((LIST_NODE_SIZE - sizeof(ListNode)) / sizeof(void *)))
 
 ListNode *request_list_node(void) {
-		static void *list_mem_ptr = NULL;
-	  ListNode *block;
+    static void *list_mem_ptr = NULL;
+    ListNode *block;
 
-		if (list_mem_ptr == NULL) {
-				list_mem_ptr = ((void *)(((U8 *)heap_low_address) - LIST_MEMORY_SIZE));
-		}
+    if (list_mem_ptr == NULL) {
+        list_mem_ptr = ((void *)(((U8 *)heap_low_address) - LIST_MEMORY_SIZE));
+    }
 
-		block = list_mem_ptr;
-		list_mem_ptr = ((U8 *)list_mem_ptr) + LIST_NODE_SIZE;
-		return block;
+    block = list_mem_ptr;
+    list_mem_ptr = ((U8 *)list_mem_ptr) + LIST_NODE_SIZE;
+    return block;
 }
 
 ListNode *list_nodes[NUM_QUEUES];
 int list_node_used[NUM_QUEUES];
 
 void list_init() {
-		ListNode *node;
-	  int i;
+    ListNode *node;
+    int i;
 
-		for (i = 0; i < NUM_QUEUES; ++i) {
-				node = request_list_node();
-				list_nodes[i] = node;
+    for (i = 0; i < NUM_QUEUES; ++i) {
+        node = request_list_node();
+        list_nodes[i] = node;
 
-				list_node_used[i] = 0;
-		}
+        list_node_used[i] = 0;
+    }
 }
 
 /**
@@ -57,33 +61,33 @@ void list_init() {
  * The caller must free this node by calling release_list_node(...).
  */
 ListNode *list_node_new() {
-		ListNode *node;
-	  int i;
+    ListNode *node;
+    int i;
 
-		for (i = 0; i < NUM_QUEUES; ++i) {
-				if (list_node_used[i] == 0) {
-						node = list_nodes[i];
-						list_node_used[i] = 1;
+    for (i = 0; i < NUM_QUEUES; ++i) {
+        if (list_node_used[i] == 0) {
+            node = list_nodes[i];
+            list_node_used[i] = 1;
 
-						node->next = NULL;
-						node->prev = NULL;
-						node->count = 0;
+            node->next = NULL;
+            node->prev = NULL;
+            node->count = 0;
 
-						return node;
-				}
-		}
+            return node;
+        }
+    }
 
-		return RTX_ERROR_LIST_OUT_OF_MEMORY;
+    return RTX_ERROR_LIST_OUT_OF_MEMORY;
 }
 
 void release_list_node(ListNode *node) {
-		int i;
-	  for (i = 0; i < NUM_QUEUES; ++i) {
-				if (list_nodes[i] == node) {
-						list_node_used[i] = 0;
-						return;
-				}
-		}
+    int i;
+    for (i = 0; i < NUM_QUEUES; ++i) {
+        if (list_nodes[i] == node) {
+            list_node_used[i] = 0;
+            return;
+        }
+    }
 }
 
 /**
@@ -108,7 +112,7 @@ List list_new() {
 void list_push(List *list, void *data) {
     if (list_empty(list)) {
         list->first = list_node_new();
-			  list->last = list->first;
+        list->last = list->first;
     }
 
     if (list->last->count == NODE_SIZE) {
@@ -138,7 +142,7 @@ void list_pop(List *list) {
             last->prev->next = NULL;
             list->last = last->prev;
         }
-				release_list_node(last);
+        release_list_node(last);
     }
 }
 
@@ -163,7 +167,7 @@ void list_unshift(List *list, void *data) {
  */
 void list_shift(List *list) {
     ListNode *first = list->first;
-	  int i;
+    int i;
 
     --first->count;
 
@@ -180,7 +184,7 @@ void list_shift(List *list) {
             first->next->prev = NULL;
             list->first = first->next;
         }
-				release_list_node(first);
+        release_list_node(first);
     }
 }
 
@@ -219,15 +223,13 @@ void *list_next_segment(void *start_of_data) {
 }
 
 void print_list(List *list) {
-#ifdef DEBUG
-	  // TODO: fix when using list for things other than processes.
-		int i;
-	
-	  if (list->first) {
-			  for (i = 0; i < list->first->count; ++i) {
-						uart0_put_char(((PCB *)(&list->first->data)[i])->pid + '0');
-				}
-		}
-		printf("\n\r");
-#endif // DEBUG
+    // TODO: fix when using list for things other than processes.
+    int i;
+
+    if (list->first) {
+        for (i = 0; i < list->first->count; ++i) {
+            uart0_put_char(((PCB *)(&list->first->data)[i])->pid + '0');
+        }
+    }
+    uart0_put_string("\n\r");
 }

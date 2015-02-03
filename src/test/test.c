@@ -1,5 +1,5 @@
 #include "../printf.h"
-#include "../stdefs.h"
+#include "../rtx.h"
 #include "test.h"
 
 /**

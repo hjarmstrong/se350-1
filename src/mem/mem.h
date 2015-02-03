@@ -1,38 +1,60 @@
+/**
+ * mem/mem.h -- Internal memory API
+ */
+
 #ifndef MEM_H
 #define MEM_H
 
-#include "../stdefs.h"
+#include "../rtx.h"
 
-/* Global Variables */
+/*---- Types ----------------------------------------------------------------*/
 
 typedef struct MemNode {
     struct MemNode *next;
 } MemNode;
 
-#define HEADER_SIZE sizeof(MemNode)
-#define BLOCK_SIZE 0x80
 
+/*---- Constants ------------------------------------------------------------*/
+
+#define HEADER_SIZE sizeof(MemNode)
+
+
+/*---- Initialization -------------------------------------------------------*/
+
+/**
+ * Highest address that can be used by the heap, inclusive.
+ */
 extern void *heap_high_address;
+
+/**
+ * Lowest address that can be used by the heap, inclusive.
+ */
 extern void *heap_low_address;
 
-/* Kernel Memory Methods */
 
+/*---- Private API ----------------------------------------------------------*/
+
+/**
+ * Initializes memory.
+ * Must be called BEFORE request_memory_block and k_alloc_stack!
+ *
+ * @SVC
+ */
 extern void k_memory_init(void);
 #define memory_init() _memory_init((U32)k_memory_init)
-extern int _memory_init(U32 p_func) __SVC_0;
+extern void _memory_init(U32 p_func) __SVC_0;
 
-extern void *k_request_memory_block(void);
-#define request_memory_block() _request_memory_block((U32)k_request_memory_block)
-extern void *_request_memory_block(U32 p_func) __SVC_0;
+/**
+ * Allocates memory for a process stack with 'size' bytes.
+ * Must be called AFTER memory_init.
+ *
+ * @param size size of process stack in bytes.
+ */
+U32 *k_alloc_stack(U32 size);
 
-extern int k_release_memory_block(void *);
-#define release_memory_block(mem_blk) _release_memory_block((U32)k_release_memory_block, mem_blk)
-extern int _release_memory_block(U32 p_func, void *mem_blk) __SVC_0;
-
-/* Memory Methods */
-
-U32 *k_alloc_stack(U32 size_b);
-
+/**
+ * Prints debug information about the current state of the heap and stack.
+ */
 void print_memory(void);
 
 #endif // MEM_H
