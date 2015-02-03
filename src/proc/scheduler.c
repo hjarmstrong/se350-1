@@ -6,6 +6,8 @@
 
 #include "../printf.h"
 
+#include "../uart_polling.h"
+
 List g_queues[NUM_QUEUES];
 
 void k_scheduler_init() {
@@ -89,8 +91,11 @@ PCB *k_scheduler(void) {
 
 #if DEBUG
     for (i = 0; i < NUM_QUEUES; ++i) {
-        printf("Queue %d:", i);
+			  uart0_put_char('0' + i);
+			  uart0_put_char(':');
         print_list(&g_queues[i]);
+			  uart0_put_char('\r');
+			  uart0_put_char('\n');
     }
 #endif // DEBUG
 
@@ -131,7 +136,7 @@ int k_set_process_priority(int process_id, int priority) {
         return RTX_ERROR_SCHEDULER_PRIORITY_DOESNT_EXIST;
     }
 
-    for (i = 0; i < NUM_QUEUES; ++i) {
+    for (i = 0; i < NUM_PROCS; ++i) {
         if (g_proc_table[i].m_pid == process_id) {
             g_proc_table[i].m_priority = priority;
 

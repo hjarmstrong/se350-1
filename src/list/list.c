@@ -223,7 +223,6 @@ void *list_next_segment(void *start_of_data) {
 }
 
 void print_list(List *list) {
-#if DEBUG
     // TODO: fix when using list for things other than processes.
     int i;
 
@@ -232,6 +231,5 @@ void print_list(List *list) {
             uart0_put_char(((PCB *)(&list->first->data)[i])->pid + '0');
         }
     }
-    printf("\n\r");
-#endif // DEBUG
+    uart0_put_string("\n\r");
 }

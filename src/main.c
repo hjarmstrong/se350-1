@@ -29,7 +29,7 @@ int main() {
     list_init();
 
 #if DEBUG
-    run_list_tests();
+    // run_list_tests();
 #endif // DEBUG
 
     process_init();
