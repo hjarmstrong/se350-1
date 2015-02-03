@@ -1,7 +1,7 @@
 #ifndef TEST_H
 #define TEST_H
 
-#include "../stdefs.h"
+#include "../rtx.h"
 
 /* Global Test Methods */
 

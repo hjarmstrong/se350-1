@@ -1,9 +1,15 @@
+/**
+ * mem/mem.h -- Internal memory API
+ */
+
 #include "../list/list.h"
 #include "mem.h"
 #include "../printf.h"
 #include "../proc/process.h"
 #include "../proc/scheduler.h"
-#include "../stdefs.h"
+#include "../rtx.h"
+
+extern U32 Image$$RW_IRAM1$$ZI$$Limit;
 
 MemNode *root;
 
@@ -13,16 +19,15 @@ void *heap_low_address;
 void print_memory() {
     MemNode *ptr = NULL;
     int is_free = 1;
-	  int i;
+    int i;
 
     printf("\n\r");
 
     printf("print_memory: PCB: 0x%x -> 0x%x\n\r",
-      (U8 *)&Image$$RW_IRAM1$$ZI$$Limit,
-      heap_low_address);
+        (U8 *)&Image$$RW_IRAM1$$ZI$$Limit, heap_low_address);
+
     printf("print_memory: Stacks: 0x%x -> 0x%x\n\r",
-      gp_stack,
-      (U32 *)0x10008000);
+        gp_stack, (U32 *)0x10008000);
 
     if (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
         printf("print_memory: FULL!\n\r");
@@ -36,8 +41,7 @@ void print_memory() {
 
     for (i = 0; i < NUM_PROCS; ++i) {
         printf("print_memory: proc_%d has SP 0x%x\n\r",
-          i,
-          gp_pcbs[i]->sp);
+            i, gp_pcbs[i]->sp);
     }
 
     __enable_irq();
@@ -50,8 +54,8 @@ void print_memory() {
  * Must be called before k_alloc_stack(...)
  */
 void k_memory_init(void) {
-	  int i;
-	
+    int i;
+
     /* Allocate space for system variables, set up heap_low_address */
     U8 *p_end = (U8 *)&Image$$RW_IRAM1$$ZI$$Limit;
 
@@ -73,7 +77,7 @@ void k_memory_init(void) {
 
     /* 4 bytes padding */
     p_end += 4;
-		
+
     heap_low_address = p_end;
 
 
@@ -99,22 +103,22 @@ U32 *k_alloc_stack(U32 size_b) {
 }
 
 void* k_request_memory_block(void) {
-		static int is_init = 0;
+    static int is_init = 0;
 
-		int free_size = 0;
+    int free_size = 0;
     int is_free = 1;
     void *mem_blk = NULL;
     MemNode *next_blk = NULL;
     MemNode *prev = NULL;
     MemNode *ptr = NULL;
-	  
+
     if (!is_init) {
         root = (void *)(((U8 *)heap_high_address) - HEADER_SIZE);
         root->next = heap_low_address;
         is_init = 1;
     }
 
-#ifdef DEBUG
+#if DEBUG
     //print_memory();
 #endif // DEBUG
 
@@ -130,7 +134,7 @@ void* k_request_memory_block(void) {
         if (is_free == 1) {
             free_size = ((U8 *)ptr) - ((U8 *)ptr->next);
             if (free_size >= BLOCK_SIZE - 2 * HEADER_SIZE) {
-                    break;
+                break;
             }
         }
     }
@@ -196,10 +200,10 @@ int k_release_memory_block(void* mem_blk) {
         }
     }
     if (ptr == heap_low_address) {
-#ifdef DEBUG
+#if DEBUG
         printf("ERROR: ptr was set to heap_low_address\n\r");
 #endif // DEBUG
-        return RTX_ERROR;
+        return RTX_ERR;
     }
 
     __disable_irq();
@@ -207,15 +211,15 @@ int k_release_memory_block(void* mem_blk) {
     if (mem_blk == ((U8 *)ptr->next) + HEADER_SIZE) {
         if (mem_blk == ((U8 *)ptr) - BLOCK_SIZE) {
             // complete block
-                if (ptr->next == heap_low_address) {
-                    // block at start of allocatable memory
-                    prev->next = ptr->next;
-                } else {
-                    // block is anywhere else
-                    // this should completely remove the entire block
-                    // and force the pointers to skip it
-                    prev->next = ptr->next->next;
-                }
+            if (ptr->next == heap_low_address) {
+                // block at start of allocatable memory
+                prev->next = ptr->next;
+            } else {
+                // block is anywhere else
+                // this should completely remove the entire block
+                // and force the pointers to skip it
+                prev->next = ptr->next->next;
+            }
         } else {
             // at start of block
             next_blk = (MemNode *)(((U8 *)ptr->next) + BLOCK_SIZE);
