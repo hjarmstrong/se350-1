@@ -71,10 +71,6 @@ void k_memory_init(void) {
         p_end += sizeof(PCB);
     }
 
-    /* Allocate List management memory */
-    // TODO: make this dynamic
-    p_end += LIST_MEMORY_SIZE;
-
     /* 4 bytes padding */
     p_end += 4;
 

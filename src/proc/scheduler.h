@@ -19,7 +19,7 @@
 
 /*---- Global variables -----------------------------------------------------*/
 
-extern List g_queues[NUM_QUEUES];
+extern PCB *g_queues[NUM_QUEUES][NUM_PROCS];
 
 /*---- Kernel Scheduler Methods ---------------------------------------------*/
 

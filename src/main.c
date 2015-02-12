@@ -26,7 +26,6 @@ int main() {
     printf("\n\r\n\r");
 
     memory_init();
-    list_init();
 
 #if DEBUG
     // run_list_tests();
