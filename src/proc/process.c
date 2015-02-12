@@ -129,3 +129,15 @@ PCB *k_get_pcb_from_pid(int pid){
 
 		return NULL;
 }
+
+PROC_INIT *k_get_proc_table_from_pid(int pid){
+	int i;
+	
+		for (i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
+        if (g_proc_table[i].m_pid == pid) {
+            return &g_proc_table[i];
+        }
+    }
+
+		return NULL;
+}

@@ -43,5 +43,6 @@ extern int _process_init(U32 p_func) __SVC_0;
 
 int k_process_switch(PCB *p_pcb_old);
 PCB *k_get_pcb_from_pid(int pid);
+PROC_INIT *k_get_proc_table_from_pid(int pid);
 
 #endif // PROCESS_H
