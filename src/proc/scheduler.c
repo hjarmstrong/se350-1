@@ -54,8 +54,7 @@ int k_enqueue_process(int process_id) {
                 case RUNNING:
                     list_push(&g_queues[g_proc_table[i].m_priority], gp_pcbs[i]);
                     return RTX_OK;
-                case BLOCKED:
-                    // TODO: change PRIORITY_BLOCKED_ON_MEMORY to generic case
+                case BLOCKED_ON_MEMORY:
                     list_push(&g_queues[PRIORITY_BLOCKED_ON_MEMORY], gp_pcbs[i]);
                     return RTX_OK;
                 default:
@@ -111,9 +110,9 @@ PCB *k_scheduler(void) {
 }
 
 int k_get_process_priority(int process_id) {
-    int i;
-  
-    for (i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
+		int i;
+	
+		for (i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
         if (g_proc_table[i].m_pid == process_id) {
             return g_proc_table[i].m_priority;
         }

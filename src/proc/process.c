@@ -54,6 +54,7 @@ void k_process_init() {
             *(--sp) = 0x0;
         }
         gp_pcbs[i]->sp = sp;
+				gp_pcbs[i]->msg_queue = list_new(); 
     }
 
     // This variable must be set before we can use memory management functionality
@@ -115,4 +116,16 @@ int k_release_processor(void) {
     }
 
     return k_process_switch(p_pcb_old);
+}
+
+PCB *k_get_pcb_from_pid(int pid){
+		int i;
+	
+		for (i = 0; i < (sizeof(gp_pcbs) / sizeof(gp_pcbs[0])); ++i) {
+        if (gp_pcbs[i]->pid == pid) {
+            return gp_pcbs[i];
+        }
+    }
+
+		return NULL;
 }

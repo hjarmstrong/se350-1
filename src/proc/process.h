@@ -12,13 +12,15 @@ typedef enum PROC_STATE {
     NEW,
     READY,
     RUNNING,
-    BLOCKED
+    BLOCKED_ON_MEMORY,
+		BLOCKED_ON_RECEIVE
 } PROC_STATE;
 
 typedef struct PCB {
     U32 pid;
     void *sp;
     PROC_STATE state;
+		List msg_queue;
 } PCB;
 
 /* Global Variables */
@@ -40,5 +42,6 @@ extern int _process_init(U32 p_func) __SVC_0;
 /* Process Methods */
 
 int k_process_switch(PCB *p_pcb_old);
+PCB *k_get_pcb_from_pid(int pid);
 
 #endif // PROCESS_H
