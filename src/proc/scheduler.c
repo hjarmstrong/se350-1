@@ -8,10 +8,18 @@
 
 #include "../uart_polling.h"
 
-List g_queues[NUM_QUEUES];
+PCB *g_queues[NUM_QUEUES][NUM_PROCS];
 
 void k_scheduler_init() {
     int i;
+    int j;
+
+    // Clear queues
+    for (i = 0; i < NUM_QUEUES; ++i) {
+        for (j = 0; j < NUM_PROCS; ++j) {
+            g_queues[i][j] = NULL;
+        }
+    }
   
     // Add all processes to ready queues
     for (i = 0; i < NUM_PROCS; ++i) {
@@ -25,58 +33,80 @@ int k_dequeue_process(int process_id) {
     int j;
   
     for (i = 0; i < NUM_QUEUES && !found_process; ++i) {
-        PCB *processes[NUM_PROCS];
-        int process_count;
-        for (process_count = 0; !list_empty(&g_queues[i]); ++process_count) {
-            processes[process_count] = list_front(&g_queues[i]);
-            list_shift(&g_queues[i]);
-            if (processes[process_count]->pid == process_id) {
+        for (j = 0; j < NUM_PROCS; ++j) {
+            if (found_process) {
+                g_queues[i][j - 1] = g_queues[i][j];
+            } else if (g_queues[i][j]->pid == process_id) {
                 found_process = 1;
-                --process_count;
             }
         }
-        for (j = 0; j < process_count; ++j) {
-            list_push(&g_queues[i], processes[j]);
+        if (found_process) {
+            g_queues[i][NUM_PROCS - 1] = NULL;
         }
     }
     
     return found_process ? RTX_OK : RTX_ERR;
 }
 
+#define NOT_FOUND_YET -1
+#define UNDEFINED_STATE -2
+
 int k_enqueue_process(int process_id) {
     int i;
+    int priority = NOT_FOUND_YET;
+    PCB* pcb = NULL;
   
-    for (i = 0; i < NUM_PROCS; ++i) {
+    for (i = 0; i < NUM_PROCS && priority == NOT_FOUND_YET; ++i) {
         if (g_proc_table[i].m_pid == process_id) {
             switch (gp_pcbs[i]->state) {
                 case NEW:
                 case READY:
                 case RUNNING:
-                    list_push(&g_queues[g_proc_table[i].m_priority], gp_pcbs[i]);
-                    return RTX_OK;
+                    pcb = gp_pcbs[i];
+                    priority = g_proc_table[i].m_priority;
+                    break;
                 case BLOCKED:
+                    pcb = gp_pcbs[i];
+                    priority = PRIORITY_BLOCKED_ON_MEMORY;
                     // TODO: change PRIORITY_BLOCKED_ON_MEMORY to generic case
-                    list_push(&g_queues[PRIORITY_BLOCKED_ON_MEMORY], gp_pcbs[i]);
-                    return RTX_OK;
+                    break;
                 default:
-                    return RTX_ERROR_SCHEDULER_UNDEFINED_STATE;
+                    priority = UNDEFINED_STATE;
+                    break;
             }
         }
     }
 
-    return RTX_ERROR_SCHEDULER_PID_NOT_FOUND;
+    if (priority == NOT_FOUND_YET) {
+        return RTX_ERROR_SCHEDULER_PID_NOT_FOUND;
+    } else if (priority == UNDEFINED_STATE) {
+        return RTX_ERROR_SCHEDULER_UNDEFINED_STATE;
+    }
+
+    for (i = 0; i < NUM_PROCS; ++i) {
+        if (!g_queues[priority][i]) {
+            g_queues[priority][i] = pcb;
+            break;
+        }
+        if (i == NUM_PROCS - 1) {
+            return RTX_ERR; // More than NUM_PROC procs or broken enqueue/dequeue code?
+        }
+    }
+
+    return RTX_OK;
 }
 
 int k_unblock_queue(int blocked_queue) {
     PCB *process;
+    int i;
 
     if (blocked_queue < PRIORITY_BLOCKED_ON_MEMORY || blocked_queue > PRIORITY_BLOCKED_ON_MEMORY) {
         return RTX_ERROR_SCHEDULER_UNBLOCKING_NON_BLOCK_QUEUE;
     }
 
-    while (!list_empty(&g_queues[blocked_queue])) {
-        process = list_front(&g_queues[blocked_queue]);
-        list_shift(&g_queues[blocked_queue]);
+    for (i = 0; g_queues[blocked_queue][i]; ++i) {
+        process = g_queues[blocked_queue][i];
+        g_queues[blocked_queue][i] = NULL;
 
         process->state = READY;
         k_enqueue_process(process->pid);
@@ -88,21 +118,15 @@ int k_unblock_queue(int blocked_queue) {
 PCB *k_scheduler(void) {
     PCB *process;
     int i;
-
-#if DEBUG
-    for (i = 0; i < NUM_QUEUES; ++i) {
-			  uart0_put_char('0' + i);
-			  uart0_put_char(':');
-        print_list(&g_queues[i]);
-			  uart0_put_char('\r');
-			  uart0_put_char('\n');
-    }
-#endif // DEBUG
+    int j;
 
     for (i = 0; i < NUM_READY_QUEUES; ++i) {
-        if (!list_empty(&g_queues[i])) {
-            process = list_front(&g_queues[i]);
-            list_shift(&g_queues[i]);
+        if (g_queues[i][0]) {
+            process = g_queues[i][0];
+            for (j = 1; j < NUM_PROCS; ++j) {
+                g_queues[i][j - 1] = g_queues[i][j];
+            }
+            g_queues[i][NUM_PROCS - 1] = NULL;
             return process;
         }
     }

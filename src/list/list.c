@@ -4,13 +4,12 @@
 
 #include "list.h"
 #include "../mem/mem.h"
-#include "../printf.h"
 #include "../proc/process.h"
 #include "../proc/scheduler.h"
 #include "../uart_polling.h"
 
 /**
- * Represents a linked list node with NODE_SIZE elements.
+ * Represents a linked list node with LIST_BUCKET_SIZE elements.
  */
 typedef struct ListNode {
     struct ListNode *next;
@@ -19,82 +18,24 @@ typedef struct ListNode {
     void *data;
 } ListNode;
 
-// Size of each ListNode
-#define LIST_NODE_SIZE (LIST_MEMORY_SIZE / NUM_QUEUES)
-
-// Maximum number of elements in ListNode
-#define NODE_SIZE ((int)((LIST_NODE_SIZE - sizeof(ListNode)) / sizeof(void *)))
-
-ListNode *request_list_node(void) {
-    static void *list_mem_ptr = NULL;
-    ListNode *block;
-
-    if (list_mem_ptr == NULL) {
-        list_mem_ptr = ((void *)(((U8 *)heap_low_address) - LIST_MEMORY_SIZE));
-    }
-
-    block = list_mem_ptr;
-    list_mem_ptr = ((U8 *)list_mem_ptr) + LIST_NODE_SIZE;
-    return block;
-}
-
-ListNode *list_nodes[NUM_QUEUES];
-int list_node_used[NUM_QUEUES];
-
-void list_init() {
-    ListNode *node;
-    int i;
-
-    for (i = 0; i < NUM_QUEUES; ++i) {
-        node = request_list_node();
-        list_nodes[i] = node;
-
-        list_node_used[i] = 0;
-    }
-}
+// Maximum number of elements in ListNode.
+#define LIST_BUCKET_SIZE ((int)(BLOCK_SIZE/sizeof(void *) - sizeof(ListNode)/sizeof(void *) + 1))
 
 /**
- * Creates a new linked list node with size LIST_NODE_SIZE with NODE_SIZE elements
- * starting at list_node->data. This node is pulled from list_nodes, which holds a pre-
- * defined set of useable list_nodes.
+ * Creates a new linked list node with LIST_BUCKET_SIZE elements
+ * starting at list_node->data.
  *
- * The caller must free this node by calling release_list_node(...).
+ * The caller must free this node by calling k_release_memory_block(...).
  */
 ListNode *list_node_new() {
-    ListNode *node;
-    int i;
+    ListNode *node = (ListNode *) k_request_memory_block();
 
-    for (i = 0; i < NUM_QUEUES; ++i) {
-        if (list_node_used[i] == 0) {
-            node = list_nodes[i];
-            list_node_used[i] = 1;
+    node->next = NULL;
+    node->prev = NULL;
+    node->count = 0;
 
-            node->next = NULL;
-            node->prev = NULL;
-            node->count = 0;
-
-            return node;
-        }
-    }
-
-    return RTX_ERROR_LIST_OUT_OF_MEMORY;
+    return node;
 }
-
-void release_list_node(ListNode *node) {
-    int i;
-    for (i = 0; i < NUM_QUEUES; ++i) {
-        if (list_nodes[i] == node) {
-            list_node_used[i] = 0;
-            return;
-        }
-    }
-}
-
-/**
- * ================
- * Begin Public API
- * ================
- */
 
 /**
  * Creates a new stack-based linked list with 0 elements.
@@ -115,7 +56,7 @@ void list_push(List *list, void *data) {
         list->last = list->first;
     }
 
-    if (list->last->count == NODE_SIZE) {
+    if (list->last->count == LIST_BUCKET_SIZE) {
         ListNode *new_node = list_node_new();
 
         list->last->next = new_node;
@@ -142,7 +83,7 @@ void list_pop(List *list) {
             last->prev->next = NULL;
             list->last = last->prev;
         }
-        release_list_node(last);
+        k_release_memory_block(last);
     }
 }
 
@@ -152,14 +93,6 @@ void list_pop(List *list) {
 void *list_back(List *list) {
     ListNode *last = list->last;
     return (&last->data)[last->count - 1];
-}
-
-
-/**
- * Prepend a node to a linked list.
- */
-void list_unshift(List *list, void *data) {
-    // NOT IMPLEMENTED!!!
 }
 
 /**
@@ -184,7 +117,7 @@ void list_shift(List *list) {
             first->next->prev = NULL;
             list->first = first->next;
         }
-        release_list_node(first);
+        k_release_memory_block(first);
     }
 }
 
@@ -203,26 +136,8 @@ int list_empty(List *list) {
     return !list->last;
 }
 
-/**
- * Returns the number of elements in the segment with first element start_of_data.
- * UNTESTED
- */
-int list_segment_size(void *start_of_data) {
-    ListNode *node = (ListNode *)(((U32 *)start_of_data) - NODE_SIZE);
-    return node->count;
-}
-
-/**
- * Returns the start of the next segment given the first element in a segment, or NULL if
- * no such next segment exists.
- * UNTESTED
- */
-void *list_next_segment(void *start_of_data) {
-    ListNode *node = (ListNode *)(((U32 *)start_of_data) - NODE_SIZE);
-    return node->next ? node->next + NODE_SIZE : NULL;
-}
-
 void print_list(List *list) {
+#if DEBUG
     // TODO: fix when using list for things other than processes.
     int i;
 
@@ -232,4 +147,5 @@ void print_list(List *list) {
         }
     }
     uart0_put_string("\n\r");
+#endif
 }
