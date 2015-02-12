@@ -57,6 +57,9 @@ int k_enqueue_process(int process_id) {
                 case BLOCKED_ON_MEMORY:
                     list_push(&g_queues[PRIORITY_BLOCKED_ON_MEMORY], gp_pcbs[i]);
                     return RTX_OK;
+								case BLOCKED_ON_RECEIVE:
+										list_push(&g_queues[PRIORITY_BLOCKED_ON_RECEIVE], gp_pcbs[i]);
+										return RTX_OK;
                 default:
                     return RTX_ERROR_SCHEDULER_UNDEFINED_STATE;
             }

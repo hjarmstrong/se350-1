@@ -22,6 +22,19 @@ int k_send_message(int destination_proc_id, void *message_envelope) {
 		return RTX_OK;
 }
 
-void *k_receive_message(int *sender_id) {
-		return NULL;
+void *k_receive_message(int *sender_id) {//blocks
+		void *env;
+	
+		__disable_irq();
+	
+		while ( list_empty(&gp_current_process->msg_queue) ) {
+				gp_current_process->state = BLOCKED_ON_RECEIVE ;
+				k_release_processor ( ) ;
+		}
+		env = list_front(&gp_current_process->msg_queue);
+		list_shift(&gp_current_process->msg_queue);
+		
+		__enable_irq();
+		
+		return env ;
 }
