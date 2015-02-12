@@ -72,7 +72,7 @@ int k_enqueue_process(int process_id) {
 int k_unblock_queue(int blocked_queue) {
     PCB *process;
 
-    if (blocked_queue < PRIORITY_BLOCKED_ON_MEMORY || blocked_queue > PRIORITY_BLOCKED_ON_MEMORY) {
+    if (blocked_queue < PRIORITY_BLOCKED_ON_MEMORY || blocked_queue > PRIORITY_BLOCKED_ON_RECEIVE) {
         return RTX_ERROR_SCHEDULER_UNBLOCKING_NON_BLOCK_QUEUE;
     }
 
