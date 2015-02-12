@@ -10,6 +10,7 @@
 #include "proc/process.h"
 #include "proc/scheduler.h"
 #include "rtx.h"
+#include "timer/timer.h"
 #include "uart_polling.h"
 
 #if DEBUG
@@ -33,6 +34,7 @@ int main() {
 
     process_init();
     scheduler_init();
+		timer_init(0);
 
 #if DEBUG
     // TODO: This needs to be refactored since calling release_processor()
