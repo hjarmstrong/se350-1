@@ -12,7 +12,8 @@
 /*---- Constants ------------------------------------------------------------*/
 
 #define PRIORITY_BLOCKED_ON_MEMORY 5
-#define NUM_BLOCKED_QUEUES 1
+#define PRIORITY_BLOCKED_ON_RECEIVE 6
+#define NUM_BLOCKED_QUEUES 2
 #define NUM_READY_QUEUES 5
 
 #define NUM_QUEUES (NUM_READY_QUEUES + NUM_BLOCKED_QUEUES)

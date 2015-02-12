@@ -65,10 +65,13 @@ int k_enqueue_process(int process_id) {
                     pcb = gp_pcbs[i];
                     priority = g_proc_table[i].m_priority;
                     break;
-                case BLOCKED:
+                case BLOCKED_ON_MEMORY:
                     pcb = gp_pcbs[i];
                     priority = PRIORITY_BLOCKED_ON_MEMORY;
-                    // TODO: change PRIORITY_BLOCKED_ON_MEMORY to generic case
+                    break;
+								case BLOCKED_ON_RECEIVE:
+                    pcb = gp_pcbs[i];
+                    priority = PRIORITY_BLOCKED_ON_RECEIVE;
                     break;
                 default:
                     priority = UNDEFINED_STATE;
@@ -100,7 +103,7 @@ int k_unblock_queue(int blocked_queue) {
     PCB *process;
     int i;
 
-    if (blocked_queue < PRIORITY_BLOCKED_ON_MEMORY || blocked_queue > PRIORITY_BLOCKED_ON_MEMORY) {
+    if (blocked_queue < PRIORITY_BLOCKED_ON_MEMORY || blocked_queue > PRIORITY_BLOCKED_ON_RECEIVE) {
         return RTX_ERROR_SCHEDULER_UNBLOCKING_NON_BLOCK_QUEUE;
     }
 
@@ -135,9 +138,9 @@ PCB *k_scheduler(void) {
 }
 
 int k_get_process_priority(int process_id) {
-    int i;
-  
-    for (i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
+		int i;
+	
+		for (i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
         if (g_proc_table[i].m_pid == process_id) {
             return g_proc_table[i].m_priority;
         }
