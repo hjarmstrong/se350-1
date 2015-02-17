@@ -169,6 +169,11 @@ extern void *_receive_message(U32 p_func, int *sender_id) __SVC_0;
 #define DEFAULT 0
 #define KCD_REG 1
 
+//For testing timing
+extern int k_get_time(void);
+#define get_time(void) _get_time((U32)k_get_time)
+extern int _get_time(U32 p_func) __SVC_0;
+
 
 /*---- Section 2.5 -- Process Priority --------------------------------------*/
 

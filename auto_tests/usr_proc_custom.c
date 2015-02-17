@@ -4,26 +4,35 @@
 
 #include "../src/proc/process.h"
 
-#define MANY_MEMORY_BLOCKS 150 //should be more than 1/2 the available memory, but not all of it
-#define NUM_TESTS 5
+#define NUM_TESTS 6
+
+#define MSG_TEXT_1 'a'
+#define MSG_TEXT_2 'b'
+#define DELAY 1000 //milliseconds
 
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
 int test_status[NUM_TESTS] = {0}; //0 means not yet run, 1 means success, -1 means failure. 
 //Other values are possible in some tests. They are used for communication between processes, and are defined when used.
 
+typedef struct msgbuf {
+    int mtype; 
+    char mtext[1];
+} msgbuf;
+
 /* GUIDE TO PRIORITIES:
  * HIGH: running test
  * MEDIUM/LOW: used for preemption/blocking tests
- * PRIORITY LOW: test is finished running
+ * PRIORITY LOWEST: test is finished running
  */
 
 /* GUIDE TO TESTS: (comments also found at line where tests pass)
- * 1: a process is started and runs
- * 2: Allocated memory is not corrupted
- * 3: proc3 was preempted when changing it's priority down
- * 4: proc4 was preempted by changing proc3 priority up
- * 5: proc6 gets blocked when it runs out of memory. Note: a failure here could indicate that MANY_MEMORY_BLOCKS is too low
+ * 1: Message can be accurately sent/recieved
+ * 2: Delayed send does not block
+ * 3: Delayed recieve occurs after correct amount of time
+ * 4: Normal message is recieved before a delayed message
+ * 5: Receiving process blocks
+ * 6: Higher priority recipient preempts upon recieving message
  */
 
 void set_test_procs() {
@@ -41,26 +50,36 @@ void set_test_procs() {
         g_test_procs[i].m_stack_size = STACK_SIZE;
         g_test_procs[i].m_priority = HIGH;
     }
-    
-    // These tests use a greater amount of memory than the standard STACK_SIZE
-    g_test_procs[4].m_stack_size = 0x400;
-    g_test_procs[5].m_stack_size = 0x400;
 }
 
-//Prints test results, tests that a process runs
+//Prints test results, 
+//Test 1 sender (message can be accurately sent/recieved)
 void proc1(void) {
     int failures = 0;
     int passes = 0;
     int pid = 1;
+    int destination = 2;
     int i;
 
     int char_offset = 48;
+    
+    msgbuf *msg;
 
     uart0_put_string("G007_test: START\n\r");
+    
+    //create a message to send to process 2
+    msg = request_memory_block();
+    msg->mtype = DEFAULT;
+    msg->mtext[0] = MSG_TEXT_1;
+    
+    //send the message to process 2
+    send_message(destination, msg);
+    
+    //mark tests 1 and 2 failed (process 2 will mark the tests passed later if sucessful)
+    test_status[0] = -1;
+    test_status[1] = -1;
 
-    test_status[0] = 1;//TEST 1: a process is started and runs
-
-    set_process_priority(pid, LOWEST);
+    set_process_priority(pid, LOWEST);//Wait for other processes to finish before printing results
 
     for (i = 0; i < NUM_TESTS; i++) {
         uart0_put_string("G007_test: test ");
@@ -93,148 +112,174 @@ void proc1(void) {
     }
 }
 
-//Test that allocated memory is not overwritten
+//Test 1 reciever (message can be accurately sent/recieved)
 void proc2(void) {
     int pid = 2;
-    int i;
-  
-    int *ptr = request_memory_block();
-    *ptr = 42;
+    int sender = 1;
+    msgbuf * msg;
     
-    for (i = 0; i < 10; i++){//give other processes time to adjust memory
-        release_processor();
-    }
+    msg = receive_message(&sender);
     
-    if (*ptr == 42) { //TEST 2: Allocated memory is not corrupted
-        test_status[1] = 1;
+    //check message contents
+    if(msg->mtype == DEFAULT && msg->mtext[0] == MSG_TEXT_1){
+        test_status[0] = 1;//TEST 1: Message contents same as when sent
     } else {
-        test_status[1] = -1;
+        test_status[0] = -1;//message contents incorrect
     }
     
-    release_memory_block(ptr);//return to initial state
+    release_memory_block(msg);
     
-
+    //Done testing
     set_process_priority(pid, LOWEST);
-    
     while (1) {
         release_processor();
     }
 }
 
-void proc3(void) {//Part 1 of preemption tests for priority change
+//Test 2 (delayed send does not block), and
+//Test 3 (delayed recieve occurs after correct amount of time)
+void proc3(void) {
     int pid = 3;
-  
-    test_status[2] = 2;//2 tells proc4 that this process has run
-    set_process_priority(pid, LOW);
-	
-    //set_process_priority(pid, 2);
-    if(test_status[2] != 1){//proc4 will set test_status[2] to 1 if it runs before we get to this line 
-        test_status[2] = -1;
+    msgbuf *msg;
+    int start_time;
+    int end_time;
+    
+    //create message
+    msg = request_memory_block();
+    msg->mtype = DEFAULT;
+    msg->mtext[0] = MSG_TEXT_1;
+    
+    //check time
+    start_time = get_time();
+    
+    //send with delay
+    delayed_send(pid, msg, DELAY);
+    
+    test_status[1] = 1;//TEST 2: Send does not block 
+    //(if it did, we wouldn't reach this line because this process is sending the message to itself)
+    
+    receive_message(&pid);//don't need to store, because we have the original. Just checking the timing.
+    
+    //check time
+    end_time = get_time();
+    //mark test 3 passed if it is late enough, otherwise make it failed
+    if(end_time >= start_time + DELAY){
+        test_status[2] = 1;//TEST 3: delayed message recieved after the appropriate delay
+    } else {
+        test_status[2] = -1;//message recieved too soon
     }
     
-    //Begin test 4
-    
-    while(test_status[3] == 0){//Wait for proc4 to run
-        release_processor();
-    }
-    if(test_status[3] == 2){//TEST 4: proc4 was preempted by changing proc3 priority up
-        test_status[3] = 1;
-    }
+    //release message memory
+    release_memory_block(msg);
 
+    //Done testing
     set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();
     }
 }
 
-void proc4(void) {//Part 2 of preemption tests for priority change
+//Test 4 (normal message is recieved before a delayed message)
+void proc4(void) {
     int pid = 4;
-    int part_1_pid = 3;
+    msgbuf *delayed_msg;
+    msgbuf *normal_msg;
+    msgbuf *received_msg;
     
-    while(test_status[2] == 0){//Wait for proc3 to run
-        release_processor();
+    //create delayed message
+    delayed_msg = request_memory_block();
+    delayed_msg->mtype = DEFAULT;
+    delayed_msg->mtext[0] = MSG_TEXT_1;
+    
+    //create normal message
+    normal_msg = request_memory_block();
+    normal_msg->mtype = DEFAULT;
+    normal_msg->mtext[0] = MSG_TEXT_2;//different text from the delayed message
+    
+    //send delayed message
+    delayed_send(pid, delayed_msg, DELAY);
+    //send normal message
+    send_message(pid, normal_msg);
+    
+    //recieve message
+    received_msg = receive_message(&pid);
+    
+    //if normal message, mark test passed
+    if(received_msg->mtext[0] == MSG_TEXT_2){//should get the non delayed message before the delayed message even though it was sent later.
+        test_status[3] = 1;//TEST 4: normal message is recieved before delayed message
+    } else {
+        test_status[3] = -1;
     }
-    
-    if(test_status[2] == 2){//TEST 3: proc3 was preempted when changing it's priority down, or else it would have already set test_status[2] to -1
-        test_status[2] = 1;
-    }//Otherwise, proc3 will indicate that the test failed
-    
-    //Begin test 4
-    
-    //set priority down so that proc3 can be set to higher priority
-    set_process_priority(pid, MEDIUM);
-    test_status[3] = 2;//indicates that this has run
-    //Should be preempted by proc3
-    set_process_priority(part_1_pid, HIGH);
-    //set_process_priority(part_1_pid, 0);
-    if(test_status[3] != 1){//proc3 will set test_status if this process is preempted...
-        test_status[3] = -1;//...so if it doesn't, fail the test
-    }
+    //release message memory
+    release_memory_block(received_msg);
+    //recieve massage
+    received_msg = receive_message(&pid);//reusing variable now that the test is finished.
+    //release message memory
+    release_memory_block(received_msg);
 
+    //Done testing
     set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();
     }
 }
 
-void proc5(void) {//Part 1 of out of memory blocking queue tests
-    void *allocated_memory[MANY_MEMORY_BLOCKS];
+//Test 5 sender (receiving process blocks) and
+//Test 6 sender (higher priority recipient preempts upon recieving message)
+void proc5(void) {
     int pid = 5;
-    int i;
-
-    //grab more than 1/2 the memory
-    for(i = 0; i < MANY_MEMORY_BLOCKS; i++){
-        allocated_memory[i] = request_memory_block();
-    }
-
-    test_status[4] = 2; //Indicates to proc6 that this has run
-
-    //change priority down so that this process won't run until proc6 is blocked
+    int destination = 6;
+    msgbuf *msg;
+    
+    //create message
+    msg = request_memory_block();
+    msg->mtype = DEFAULT;
+    msg->mtext[0] = MSG_TEXT_1;
+    
+    //set priority to medium so that proc6 will run until it blocks
     set_process_priority(pid, MEDIUM);
-    if (test_status[4] != -1){//if proc6 is not blocked, it will fail the test
-        test_status[4] = 1;//otherwise, we know it was blocked, and should pass the test
+    //mark test 5 passed if it is already failed by proc6 not blocking
+    if(test_status[4] != -1){//This lower priority process should run before proc6 finishes receiving a message, because this process has not sent it yet.
+        test_status[4] = 1;//TEST 5: receive blocks. 
+    }
+    
+    //send message
+    send_message(destination, msg);
+    //should now be preempted by proc6, which is higher priority and now has a message to receive.
+    
+    
+    //mark test 6 failed if it is not yet passed(should have been preempted on send by proc6
+    if(test_status[5] != 1){//If proc5 is preempted, proc6 will mark this test passed before this line...
+        test_status[5] = -1;//... so if this line runs, preemption did not work as expected.
     }
 
-    //release memory to unblock proc6
-    for (i = 0; i < MANY_MEMORY_BLOCKS; i++){
-        release_memory_block(allocated_memory[i]);
-    }
-    
+    //Done testing
     set_process_priority(pid, LOWEST);
-    
-    //Done testing, get out of the way
     while (1) {
         release_processor();
     }
 }
 
-void proc6(void) {//Part 2 of out of memory blocking queue tests
-    void *allocated_memory[MANY_MEMORY_BLOCKS];
+//Test 5 sender (receiving process blocks) and
+//Test 6 sender (higher priority recipient preempts upon recieving message)
+void proc6(void) {
     int pid = 6;
-    int i;
-  
-    while(test_status[4] != 2){//wait for proc5 to run
-        release_processor();
-    }
-    
-    //Try to get more memory than is left after proc5. This process should get blocked at some point in this loop
-    for (i = 0; i < MANY_MEMORY_BLOCKS; i++){
-        allocated_memory[i] = request_memory_block();
-    }
-    //proc5 runs when this is blocked, marks test passed, then releases memory so this process will finish running
-    
-    if (test_status[4] != 1){//This would indicate that this process never got blocked
-        test_status[4] = -1;//if this process did not get blocked, the test should fail
-    }
-    
-    //release memory to clean up
-    for (i = 0; i < MANY_MEMORY_BLOCKS; i++){
-        release_memory_block(allocated_memory[i]);
-    }
-    
-    //Done testing, get out of the way
-    set_process_priority(pid, LOWEST);
+    int sender =5;
 
+    //recieve message
+    receive_message(&sender);
+    //mark test 5 failed if not passed by proc5 while this process was blocked.
+    if(test_status[4] != 1){//If this line runs before proc5 sends a message...
+        test_status[4] = -1;//receive did not block.
+    }
+    
+    //mark test 6 passed if it is not failed
+    if(test_status[5] != -1){//if proc5 stops running after sending a message until after this process has run
+        test_status[5] = 1;//TEST 6: higher priority recipient preempts upon recieving message
+    }
+    
+    //Done testing
+    set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();
     }

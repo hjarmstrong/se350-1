@@ -67,3 +67,7 @@ void *k_receive_message(int *sender_id) {//blocks
 
 		return env;
 }
+
+int k_get_time(void) {
+    return g_timer_count;
+}
