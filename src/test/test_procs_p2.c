@@ -2,7 +2,7 @@
 #include "usr_proc.h"
 #include "rtx.h"
 
-#include "../src/proc/process.h"
+#include "../proc/process.h"
 
 #define NUM_TESTS 6
 
@@ -23,7 +23,7 @@ typedef struct msgbuf {
 /* GUIDE TO PRIORITIES:
  * HIGH: running test
  * MEDIUM/LOW: used for preemption/blocking tests
- * PRIORITY LOWEST: test is finished running
+ * LOWEST: test is finished running
  */
 
 /* GUIDE TO TESTS: (comments also found at line where tests pass)
@@ -116,7 +116,7 @@ void proc1(void) {
 void proc2(void) {
     int pid = 2;
     int sender = 1;
-    msgbuf * msg;
+    msgbuf *msg;
     
     msg = receive_message(&sender);
     
