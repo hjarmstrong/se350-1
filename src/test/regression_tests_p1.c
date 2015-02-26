@@ -2,7 +2,7 @@
 #include "usr_proc.h"
 #include "rtx.h"
 
-#include "../src/proc/process.h"
+#include "../proc/process.h"
 
 #define MANY_MEMORY_BLOCKS 150 //should be more than 1/2 the available memory, but not all of it
 #define NUM_TESTS 5
@@ -15,7 +15,7 @@ int test_status[NUM_TESTS] = {0}; //0 means not yet run, 1 means success, -1 mea
 /* GUIDE TO PRIORITIES:
  * HIGH: running test
  * MEDIUM/LOW: used for preemption/blocking tests
- * PRIORITY LOW: test is finished running
+ * LOWEST: test is finished running
  */
 
 /* GUIDE TO TESTS: (comments also found at line where tests pass)

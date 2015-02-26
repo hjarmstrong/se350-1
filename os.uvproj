@@ -466,11 +466,6 @@
               <FileType>1</FileType>
               <FilePath>.\src\proc\scheduler.c</FilePath>
             </File>
-            <File>
-              <FileName>usr_proc_custom.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\auto_tests\usr_proc_custom.c</FilePath>
-            </File>
           </Files>
         </Group>
         <Group>
@@ -502,6 +497,29 @@
               <FilePath>.\src\test\test.c</FilePath>
             </File>
           </Files>
+        </Group>
+        <Group>
+          <GroupName>ipc</GroupName>
+          <Files>
+            <File>
+              <FileName>ipc.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\ipc\ipc.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>timer</GroupName>
+          <Files>
+            <File>
+              <FileName>timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\timer\timer.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>auto_tests</GroupName>
         </Group>
       </Groups>
     </Target>

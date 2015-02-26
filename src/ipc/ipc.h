@@ -3,11 +3,6 @@
 
 #include "../rtx.h"
 
-typedef struct msgbuf {
-		int mtype; /* user defined message type */
-		char mtext[1]; /* body of the message */
-} msgbuf;
-
 typedef struct msg_metadata {
 		int sender_pid;
 		int destination_pid;

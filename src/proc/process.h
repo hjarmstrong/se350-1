@@ -4,7 +4,7 @@
 #include "../list/list.h"
 #include "../rtx.h"
 #include "sys_process.h"
-#include "../../auto_tests/usr_proc.h"
+#include "../test/usr_proc.h"
 
 /* Process Structs */
 
