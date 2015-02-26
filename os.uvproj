@@ -496,6 +496,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\test\test.c</FilePath>
             </File>
+            <File>
+              <FileName>test_procs_p2.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\test\test_procs_p2.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -517,9 +522,6 @@
               <FilePath>.\src\timer\timer.c</FilePath>
             </File>
           </Files>
-        </Group>
-        <Group>
-          <GroupName>auto_tests</GroupName>
         </Group>
       </Groups>
     </Target>

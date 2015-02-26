@@ -10,10 +10,6 @@ msg_metadata *get_message_metadata(void * message_envelope) {
 }
 
 int k_send_message(int destination_proc_id, void *message_envelope) {
-		return k_delayed_send(destination_proc_id, message_envelope, 0);
-}
-
-int k_delayed_send(int destination_proc_id, void *message_envelope, int delay) {
 		PCB *receiving_proc;
 		msg_metadata *metadata = get_message_metadata(message_envelope);
 
@@ -21,8 +17,7 @@ int k_delayed_send(int destination_proc_id, void *message_envelope, int delay) {
 
 		metadata->sender_pid = gp_current_process->pid;
 	  metadata->destination_pid = destination_proc_id;
-	  metadata->min_delivery_time = g_timer_count + delay;
-	
+
 		receiving_proc = k_get_pcb_from_pid(destination_proc_id);
 		list_push(&receiving_proc->msg_queue, message_envelope);
 
@@ -44,9 +39,12 @@ int k_delayed_send(int destination_proc_id, void *message_envelope, int delay) {
 		return RTX_OK;
 }
 
+int k_delayed_send(int destination_proc_id, void *message_envelope, int delay) {
+	// TODO: relies on Timer i-process
+}
+
 void *k_receive_message(int *sender_id) {//blocks
 		void *env;
-		msg_metadata *metadata;
 
 		while (list_empty(&gp_current_process->msg_queue)) {
 				gp_current_process->state = BLOCKED_ON_RECEIVE;
@@ -54,13 +52,7 @@ void *k_receive_message(int *sender_id) {//blocks
 		}
 
 		env = list_front(&gp_current_process->msg_queue);
-		
-		metadata = get_message_metadata(env);
-		while (metadata->min_delivery_time > g_timer_count) {
-				gp_current_process->state = BLOCKED_ON_RECEIVE;
-				k_release_processor();
-		}
-		
+
 		__disable_irq();
 		list_shift(&gp_current_process->msg_queue);
 		__enable_irq();
