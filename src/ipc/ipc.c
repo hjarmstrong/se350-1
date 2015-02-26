@@ -26,7 +26,7 @@ int k_send_message(int destination_proc_id, void *message_envelope) {
 				k_dequeue_process(destination_proc_id);
 				k_enqueue_process(destination_proc_id);
 
-				if (k_get_proc_table_from_pid(destination_proc_id)->m_priority >
+				if (k_get_proc_table_from_pid(destination_proc_id)->m_priority <
 								k_get_proc_table_from_pid(metadata->sender_pid)->m_priority) {
 						__enable_irq();
 						k_release_processor();

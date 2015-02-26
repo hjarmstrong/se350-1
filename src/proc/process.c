@@ -121,7 +121,7 @@ int k_release_processor(void) {
 PCB *k_get_pcb_from_pid(int pid){
 		int i;
 	
-		for (i = 0; i < (sizeof(gp_pcbs) / sizeof(gp_pcbs[0])); ++i) {
+		for (i = 0; i < NUM_PROCS; ++i) {
         if (gp_pcbs[i]->pid == pid) {
             return gp_pcbs[i];
         }
@@ -133,7 +133,7 @@ PCB *k_get_pcb_from_pid(int pid){
 PROC_INIT *k_get_proc_table_from_pid(int pid){
 	int i;
 	
-		for (i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
+		for (i = 0; i < NUM_PROCS; ++i) {
         if (g_proc_table[i].m_pid == pid) {
             return &g_proc_table[i];
         }

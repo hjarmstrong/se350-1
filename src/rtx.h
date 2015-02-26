@@ -10,7 +10,7 @@
 /**
  * If '1', print verbose DEBUG information to UART.
  */
-#define DEBUG 0
+#define DEBUG 1
 
 /**
  * Size of memory block returned by request_memory_block, in bytes.
