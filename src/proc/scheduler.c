@@ -140,7 +140,7 @@ PCB *k_scheduler(void) {
 int k_get_process_priority(int process_id) {
 		int i;
 	
-		for (i = 0; i < (sizeof(g_proc_table) / sizeof(g_proc_table[0])); ++i) {
+		for (i = 0; i < NUM_PROCS; ++i) {
         if (g_proc_table[i].m_pid == process_id) {
             return g_proc_table[i].m_priority;
         }
