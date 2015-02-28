@@ -16,13 +16,13 @@ void k_scheduler_init() {
 
     // Clear queues
     for (i = 0; i < NUM_QUEUES; ++i) {
-        for (j = 0; j < NUM_PROCS; ++j) {
+        for (j = NUM_IPROCS; j < NUM_PROCS; ++j) {
             g_queues[i][j] = NULL;
         }
     }
   
     // Add all processes to ready queues
-    for (i = 0; i < NUM_PROCS; ++i) {
+    for (i = NUM_IPROCS; i < NUM_PROCS; ++i) {
         k_enqueue_process(g_proc_table[i].m_pid);
     } 
 }
@@ -55,6 +55,10 @@ int k_enqueue_process(int process_id) {
     int i;
     int priority = NOT_FOUND_YET;
     PCB* pcb = NULL;
+	  
+	  if(process_id == (~0) || process_id == (~0 - 1)) {
+		    return RTX_OK; // Don't put iprocesses in the queue
+		}
   
     for (i = 0; i < NUM_PROCS && priority == NOT_FOUND_YET; ++i) {
         if (g_proc_table[i].m_pid == process_id) {

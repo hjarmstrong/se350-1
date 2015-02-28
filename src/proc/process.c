@@ -27,19 +27,32 @@ void k_process_init() {
     int i;
     int j;
 
+    // Initialize iprocesses they are always ready to run, but never in a queue, so no priority is set	
+	
+	  // Uart iprocess
+	  g_proc_table[0].m_pid = ~0;
+	  g_proc_table[0].m_stack_size = STACK_SIZE;
+	  g_proc_table[0].mpf_start_pc = &uart0_iproc;
+	
+    // Timer iprocess	
+	g_proc_table[1].m_pid = ~0 - 1;
+	g_proc_table[1].m_stack_size = STACK_SIZE;
+	g_proc_table[1].mpf_start_pc = &timer_iproc;
+	
+	
     // Initialize null process table
-    g_proc_table[0].m_pid = 0;
-    g_proc_table[0].m_stack_size = STACK_SIZE;
-    g_proc_table[0].mpf_start_pc = &null_proc;
-    g_proc_table[0].m_priority = PNULL;
-
+    g_proc_table[2].m_pid = 0;
+    g_proc_table[2].m_stack_size = STACK_SIZE;
+    g_proc_table[2].mpf_start_pc = &null_proc;
+    g_proc_table[2].m_priority = PNULL;
+	
     // Initialize test process tables
     set_test_procs();
     for (i = 0; i < NUM_TEST_PROCS; ++i) {
-        g_proc_table[i + 1].m_pid = g_test_procs[i].m_pid;
-        g_proc_table[i + 1].m_stack_size = g_test_procs[i].m_stack_size;
-        g_proc_table[i + 1].mpf_start_pc = g_test_procs[i].mpf_start_pc;
-        g_proc_table[i + 1].m_priority = g_test_procs[i].m_priority;
+        g_proc_table[i + NUM_SYS_PROCS].m_pid = g_test_procs[i].m_pid;
+        g_proc_table[i + NUM_SYS_PROCS].m_stack_size = g_test_procs[i].m_stack_size;
+        g_proc_table[i + NUM_SYS_PROCS].mpf_start_pc = g_test_procs[i].mpf_start_pc;
+        g_proc_table[i + NUM_SYS_PROCS].m_priority = g_test_procs[i].m_priority; // This line just copies an unused val
     }
 
     // Initilize all processes
@@ -75,6 +88,7 @@ int k_process_switch(PCB *p_pcb_old) {
         }
         gp_current_process->state = RUNNING;
         __set_MSP((U32) gp_current_process->sp);
+				__enable_irq();
         __rte();  // pop exception stack frame from the stack for a new processes
     }
 
@@ -88,17 +102,21 @@ int k_process_switch(PCB *p_pcb_old) {
             p_pcb_old->sp = (U32 *) __get_MSP(); // save the old process's sp
             gp_current_process->state = RUNNING;
             __set_MSP((U32) gp_current_process->sp); //switch to the new proc's stack
+						__enable_irq();
         } else {
             gp_current_process = p_pcb_old; // revert back to the old proc on error
+					  __enable_irq();
             return RTX_ERR;
         }
     }
-
+     
     return RTX_OK;
 }
 
-int k_release_processor(void) {
+int k_release_processor(void) {	
     PCB *p_pcb_old = gp_current_process;
+	
+	  __disable_irq();
     k_enqueue_process(p_pcb_old->pid);
     gp_current_process = k_scheduler();
 
@@ -106,6 +124,7 @@ int k_release_processor(void) {
     // find a new process to execute
     if (gp_current_process == NULL) {
         gp_current_process = p_pcb_old;
+		__enable_irq();
         return RTX_ERR;
     }
 
@@ -114,7 +133,7 @@ int k_release_processor(void) {
     if (p_pcb_old == NULL) {
         p_pcb_old = gp_current_process;
     }
-
+    
     return k_process_switch(p_pcb_old);
 }
 
