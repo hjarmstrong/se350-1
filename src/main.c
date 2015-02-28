@@ -11,6 +11,7 @@
 #include "proc/scheduler.h"
 #include "rtx.h"
 #include "timer/timer.h"
+#include "crt/crt.h"
 #include "uart_polling.h"
 
 #if DEBUG
@@ -20,7 +21,8 @@
 
 int main() {
     SystemInit();
-    uart0_init();
+	uart_irq_init(0);   // uart0, interrupt-driven 
+	uart1_init();       // uart1, polling
   
     // Printf operations are no-ops unless DEBUG is set.
     init_printf(NULL);

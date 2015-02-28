@@ -98,7 +98,7 @@ U32 *k_alloc_stack(U32 size_b) {
     return sp;
 }
 
-void* k_request_memory_block(void) {
+void *k_request_memory_block(void) {
     static int is_init = 0;
 
     int free_size = 0;

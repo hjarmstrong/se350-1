@@ -9,6 +9,8 @@
 #include "scheduler.h"
 #include "../rtx.h"
 #include "../svc/hal.h"
+#include "../crt/crt.h"
+#include "../timer/timer.h"
 
 #define INITIAL_xPSR 0x01000000
 
@@ -32,12 +34,12 @@ void k_process_init() {
 	  // Uart iprocess
 	  g_proc_table[0].m_pid = ~0;
 	  g_proc_table[0].m_stack_size = STACK_SIZE;
-	  g_proc_table[0].mpf_start_pc = &uart0_iproc;
+	  g_proc_table[0].mpf_start_pc = &c_UART0_IRQ_Handler;
 	
     // Timer iprocess	
 	g_proc_table[1].m_pid = ~0 - 1;
 	g_proc_table[1].m_stack_size = STACK_SIZE;
-	g_proc_table[1].mpf_start_pc = &timer_iproc;
+	g_proc_table[1].mpf_start_pc = &c_TIMER0_IRQHandler;
 	
 	
     // Initialize null process table

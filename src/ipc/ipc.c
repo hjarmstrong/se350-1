@@ -4,6 +4,7 @@
 #include "../proc/scheduler.h"
 #include "../timer/timer.h"
 #include "../rtx.h"
+#include "../mem/mem.h"
 
 msg_metadata *get_message_metadata(void * message_envelope) {
 		return (msg_metadata *) (((char *)message_envelope) + BLOCK_SIZE - sizeof(msg_metadata));

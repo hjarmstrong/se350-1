@@ -13,6 +13,9 @@
 
 volatile U32 g_timer_count = 0; // increment every 1 ms
 
+void *g_delay_array;
+U32 g_delay_size;
+
 /**
  * @brief: initialize timer. Only timer 0 is supported
  */
@@ -92,28 +95,18 @@ U32 timer_init(U32 n_timer)
 }
 
 /**
- * @brief: use CMSIS ISR for TIMER0 IRQ Handler
- * NOTE: This example shows how to save/restore all registers rather than just
- *       those backed up by the exception stack frame. We add extra
- *       push and pop instructions in the assembly routine. 
- *       The actual c_TIMER0_IRQHandler does the rest of irq handling
- */
-__asm void TIMER0_IRQHandler(void)
-{
-	PRESERVE8
-	IMPORT c_TIMER0_IRQHandler
-	PUSH{r4-r11, lr}
-	BL c_TIMER0_IRQHandler
-	POP{r4-r11, pc}
-} 
-/**
  * @brief: c TIMER0 IRQ Handler
  */
 void c_TIMER0_IRQHandler(void)
 {
+    int i;
 	/* ack inttrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
 	LPC_TIM0->IR = BIT(0);  
 	
 	g_timer_count++ ;
+    
+    for(i = 0; i < g_delay_size; ++i) {
+        if( ((U8 *) g_delay_array)[i]
+    }
 }
 

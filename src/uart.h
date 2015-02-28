@@ -59,6 +59,6 @@
 #define uart1_irq_init() uart_irq_init(1)       
      
 /* initialize the n_uart to use interrupt */
-int uart_irq_init(int n_uart);		
+U32 uart_irq_init(U32 n_uart);		
 
 #endif /* ! UART_IRQ_H_ */

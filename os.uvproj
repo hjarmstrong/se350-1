@@ -528,6 +528,16 @@
             </File>
           </Files>
         </Group>
+        <Group>
+          <GroupName>CRT(uart0)</GroupName>
+          <Files>
+            <File>
+              <FileName>crt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\CRT\crt.c</FilePath>
+            </File>
+          </Files>
+        </Group>
       </Groups>
     </Target>
   </Targets>
