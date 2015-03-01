@@ -1,7 +1,7 @@
 #ifndef SYS_PROCESS_H
 #define SYS_PROCESS_H
 
-/* UART0 Globas for reading from keyboard */
+/* UART0 Globals for reading from keyboard */
 
 
 /* System Processes */

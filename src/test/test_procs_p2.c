@@ -121,7 +121,7 @@ void proc2(void) {
     msg = receive_message(&sender);
     
     //check message contents
-    if(msg->mtype == DEFAULT && msg->mtext[0] == MSG_TEXT_1){
+    if (msg->mtype == DEFAULT && msg->mtext[0] == MSG_TEXT_1){
         test_status[0] = 1;//TEST 1: Message contents same as when sent
     } else {
         test_status[0] = -1;//message contents incorrect
@@ -163,7 +163,7 @@ void proc3(void) {
     //check time
     end_time = get_time();
     //mark test 3 passed if it is late enough, otherwise make it failed
-    if(end_time >= start_time + DELAY){
+    if (end_time >= start_time + DELAY){
         test_status[2] = 1;//TEST 3: delayed message recieved after the appropriate delay
     } else {
         test_status[2] = -1;//message recieved too soon
@@ -205,7 +205,7 @@ void proc4(void) {
     received_msg = receive_message(&pid);
     
     //if normal message, mark test passed
-    if(received_msg->mtext[0] == MSG_TEXT_2){//should get the non delayed message before the delayed message even though it was sent later.
+    if (received_msg->mtext[0] == MSG_TEXT_2){//should get the non delayed message before the delayed message even though it was sent later.
         test_status[3] = 1;//TEST 4: normal message is recieved before delayed message
     } else {
         test_status[3] = -1;
@@ -239,7 +239,7 @@ void proc5(void) {
     //set priority to medium so that proc6 will run until it blocks
     set_process_priority(pid, MEDIUM);
     //mark test 5 passed if it is already failed by proc6 not blocking
-    if(test_status[4] != -1){//This lower priority process should run before proc6 finishes receiving a message, because this process has not sent it yet.
+    if (test_status[4] != -1){//This lower priority process should run before proc6 finishes receiving a message, because this process has not sent it yet.
         test_status[4] = 1;//TEST 5: receive blocks. 
     }
     
@@ -249,7 +249,7 @@ void proc5(void) {
     
     
     //mark test 6 failed if it is not yet passed(should have been preempted on send by proc6
-    if(test_status[5] != 1){//If proc5 is preempted, proc6 will mark this test passed before this line...
+    if (test_status[5] != 1){//If proc5 is preempted, proc6 will mark this test passed before this line...
         test_status[5] = -1;//... so if this line runs, preemption did not work as expected.
     }
 
@@ -269,12 +269,12 @@ void proc6(void) {
     //recieve message
     receive_message(&sender);
     //mark test 5 failed if not passed by proc5 while this process was blocked.
-    if(test_status[4] != 1){//If this line runs before proc5 sends a message...
+    if (test_status[4] != 1){//If this line runs before proc5 sends a message...
         test_status[4] = -1;//receive did not block.
     }
     
     //mark test 6 passed if it is not failed
-    if(test_status[5] != -1){//if proc5 stops running after sending a message until after this process has run
+    if (test_status[5] != -1){//if proc5 stops running after sending a message until after this process has run
         test_status[5] = 1;//TEST 6: higher priority recipient preempts upon recieving message
     }
     

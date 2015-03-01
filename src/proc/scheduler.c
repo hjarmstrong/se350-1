@@ -20,7 +20,7 @@ void k_scheduler_init() {
             g_queues[i][j] = NULL;
         }
     }
-  
+
     // Add all processes to ready queues
     for (i = NUM_IPROCS; i < NUM_PROCS; ++i) {
         k_enqueue_process(g_proc_table[i].m_pid);
@@ -31,7 +31,7 @@ int k_dequeue_process(int process_id) {
     int found_process = 0;
     int i;
     int j;
-  
+
     for (i = 0; i < NUM_QUEUES && !found_process; ++i) {
         for (j = 0; j < NUM_PROCS; ++j) {
             if (found_process) {
@@ -44,7 +44,7 @@ int k_dequeue_process(int process_id) {
             g_queues[i][NUM_PROCS - 1] = NULL;
         }
     }
-    
+
     return found_process ? RTX_OK : RTX_ERR;
 }
 
@@ -55,11 +55,11 @@ int k_enqueue_process(int process_id) {
     int i;
     int priority = NOT_FOUND_YET;
     PCB* pcb = NULL;
-	  
-	  if(process_id == (~0) || process_id == (~0 - 1)) {
-		    return RTX_OK; // Don't put iprocesses in the queue
-		}
-  
+
+    if (process_id < 0 && process_id >= -NUM_IPROCS) {
+        return RTX_OK; // Don't put i-processes in the queue
+    }
+
     for (i = 0; i < NUM_PROCS && priority == NOT_FOUND_YET; ++i) {
         if (g_proc_table[i].m_pid == process_id) {
             switch (gp_pcbs[i]->state) {
@@ -73,7 +73,7 @@ int k_enqueue_process(int process_id) {
                     pcb = gp_pcbs[i];
                     priority = PRIORITY_BLOCKED_ON_MEMORY;
                     break;
-								case BLOCKED_ON_RECEIVE:
+                case BLOCKED_ON_RECEIVE:
                     pcb = gp_pcbs[i];
                     priority = PRIORITY_BLOCKED_ON_RECEIVE;
                     break;
@@ -142,9 +142,9 @@ PCB *k_scheduler(void) {
 }
 
 int k_get_process_priority(int process_id) {
-		int i;
-	
-		for (i = 0; i < NUM_PROCS; ++i) {
+    int i;
+
+    for (i = 0; i < NUM_PROCS; ++i) {
         if (g_proc_table[i].m_pid == process_id) {
             return g_proc_table[i].m_priority;
         }
@@ -155,7 +155,7 @@ int k_get_process_priority(int process_id) {
 
 int k_set_process_priority(int process_id, int priority) {
     int i;
-  
+
     if (process_id == 0 && priority != 4) {
         return RTX_ERROR_SCHEDULER_CHANGING_NULL_PROCESS_PRIORITY;
     }

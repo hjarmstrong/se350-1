@@ -13,15 +13,15 @@ typedef enum PROC_STATE {
     READY,
     RUNNING,
     BLOCKED_ON_MEMORY,
-	BLOCKED_ON_RECEIVE,
-	BLOCKED_ON_UART_IO
+    BLOCKED_ON_RECEIVE,
+    BLOCKED_ON_UART_IO
 } PROC_STATE;
 
 typedef struct PCB {
     U32 pid;
     void *sp;
     PROC_STATE state;
-	List msg_queue;
+    List msg_queue;
 } PCB;
 
 /* Global Variables */
