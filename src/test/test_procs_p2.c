@@ -65,7 +65,7 @@ void proc1(void) {
     
     msgbuf *msg;
 
-    uart0_put_string("G007_test: START\n\r");
+    uart1_put_string("G007_test: START\n\r");
     
     //create a message to send to process 2
     msg = request_memory_block();
@@ -82,30 +82,30 @@ void proc1(void) {
     set_process_priority(pid, LOWEST);//Wait for other processes to finish before printing results
 
     for (i = 0; i < NUM_TESTS; i++) {
-        uart0_put_string("G007_test: test ");
-        uart0_put_char(i + 1 + 48);
+        uart1_put_string("G007_test: test ");
+        uart1_put_char(i + 1 + 48);
         if (test_status[i] == 1) {
-            uart0_put_string(" OK\n\r");
+            uart1_put_string(" OK\n\r");
             passes++;
         } else {
-            uart0_put_string(" FAIL\n\r");
+            uart1_put_string(" FAIL\n\r");
             failures++;
         }
     }
     
-    uart0_put_string("G007_test: ");
-    uart0_put_char(passes + char_offset);
-    uart0_put_string("/");
-    uart0_put_char(NUM_TESTS + char_offset);
-    uart0_put_string(" tests OK\n\r");
+    uart1_put_string("G007_test: ");
+    uart1_put_char(passes + char_offset);
+    uart1_put_string("/");
+    uart1_put_char(NUM_TESTS + char_offset);
+    uart1_put_string(" tests OK\n\r");
     
-    uart0_put_string("G007_test: ");
-    uart0_put_char(failures + char_offset);
-    uart0_put_string("/");
-    uart0_put_char(NUM_TESTS + char_offset);
-    uart0_put_string(" tests FAIL\n\r");
+    uart1_put_string("G007_test: ");
+    uart1_put_char(failures + char_offset);
+    uart1_put_string("/");
+    uart1_put_char(NUM_TESTS + char_offset);
+    uart1_put_string(" tests FAIL\n\r");
     
-    uart0_put_string("G007_test: END\n\r");
+    uart1_put_string("G007_test: END\n\r");
     
     while (1) {
         release_processor();

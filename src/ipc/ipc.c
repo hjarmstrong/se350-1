@@ -41,7 +41,23 @@ int k_send_message(int destination_proc_id, void *message_envelope) {
 }
 
 int k_delayed_send(int destination_proc_id, void *message_envelope, int delay) {
-	// TODO: relies on Timer i-process
+		msg_metadata *metadata = get_message_metadata(message_envelope);
+
+		__disable_irq();
+
+		metadata->sender_pid = gp_current_process->pid;
+	  metadata->destination_pid = destination_proc_id;
+    metadata->send_time = (k_get_time() + delay) % ((U32)~0);
+	  
+	  g_delay_array[0] = message_envelope;
+	  g_delay_size++;
+	  if(g_delay_size == (BLOCK_SIZE / sizeof(void *))) {
+			// TODO: too many delayed message, we should decide on a recovery stratagy for now, discrad all messages
+			g_delay_size = 0;
+		}
+
+		__enable_irq();
+		return RTX_OK;
 }
 
 void *k_receive_message(int *sender_id) {//blocks

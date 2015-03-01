@@ -8,13 +8,17 @@
 
 #include <LPC17xx.h>
 #include "timer.h"
+#include "../ipc/ipc.h"
+#include "../list/list.h"
+#include "../proc/process.h"
+#include "../proc/scheduler.h"
 
 #define BIT(X) (1<<X)
 
 volatile U32 g_timer_count = 0; // increment every 1 ms
 
-void *g_delay_array;
-U32 g_delay_size;
+void **g_delay_array;
+U32 g_delay_size = 0;
 
 /**
  * @brief: initialize timer. Only timer 0 is supported
@@ -90,6 +94,9 @@ U32 timer_init(U32 n_timer)
 
 	/* Step 4.5: Enable the TCR. See table 427 on pg494 of LPC17xx_UM. */
 	pTimer->TCR = 1;
+	
+	/* Setp 5: Allocate space for delayed messages */
+	g_delay_array = (void **)request_memory_block();
 
 	return 0;
 }
@@ -97,16 +104,38 @@ U32 timer_init(U32 n_timer)
 /**
  * @brief: c TIMER0 IRQ Handler
  */
-void c_TIMER0_IRQHandler(void)
+void c_TIMER0_IRQ_Handler(void)
 {
     int i;
-	/* ack inttrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
-	LPC_TIM0->IR = BIT(0);  
+	  msg_metadata *metadata;
+	  U32 destination_proc_id;
+	  PCB *receiving_proc;
+	  /* ack inttrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
+	  LPC_TIM0->IR = BIT(0);  
 	
-	g_timer_count++ ;
+    g_timer_count++;
     
     for(i = 0; i < g_delay_size; ++i) {
-        if( ((U8 *) g_delay_array)[i]
+		    metadata = get_message_metadata(g_delay_array[i]);
+			  destination_proc_id = metadata->destination_pid;
+			  receiving_proc = k_get_pcb_from_pid(metadata->destination_pid);
+			  if(metadata->send_time == g_timer_count){
+				    metadata->send_time = -1;
+					  list_push(&receiving_proc->msg_queue, g_delay_array[i]);
+
+		        if (receiving_proc->state == BLOCKED_ON_RECEIVE) {
+				        receiving_proc->state = READY;
+				        k_dequeue_process(destination_proc_id);
+				        k_enqueue_process(destination_proc_id);
+
+				        if (k_get_proc_table_from_pid(destination_proc_id)->m_priority <
+								    k_get_proc_table_from_pid(metadata->sender_pid)->m_priority) {
+						        __enable_irq();
+						        k_release_processor();
+						        __disable_irq();
+				        }
+	          }
+        }
     }
 }
 

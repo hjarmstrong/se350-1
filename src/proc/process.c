@@ -39,7 +39,7 @@ void k_process_init() {
     // Timer iprocess	
 	g_proc_table[1].m_pid = ~0 - 1;
 	g_proc_table[1].m_stack_size = STACK_SIZE;
-	g_proc_table[1].mpf_start_pc = &c_TIMER0_IRQHandler;
+	g_proc_table[1].mpf_start_pc = &c_TIMER0_IRQ_Handler;
 	
 	
     // Initialize null process table
