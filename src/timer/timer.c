@@ -17,8 +17,8 @@
 
 volatile U32 g_timer_count = 0; // increment every 1 ms
 
-void **g_delay_array;
-U32 g_delay_size = 0;
+void **g_delayed_messages;
+U32 g_delayed_messages_count = 0;
 
 /**
  * @brief: initialize timer. Only timer 0 is supported
@@ -99,7 +99,7 @@ U32 timer_init(U32 n_timer)
     pTimer->TCR = 1;
 
     /** Step 5: Allocate space for delayed messages */
-    g_delay_array = (void **)request_memory_block();
+    g_delayed_messages = (void **)request_memory_block();
 
     return 0;
 }
@@ -110,21 +110,24 @@ U32 timer_init(U32 n_timer)
 void c_TIMER0_IRQ_Handler(void)
 {
     int i;
+	  int j = 0; // iterator which writes messages that are not ready to
+	             // be sent to another process back into (and possibly
+	             // earlier in) g_delay_array.
     msg_metadata *metadata;
     U32 destination_proc_id;
     PCB *receiving_proc;
-    /* ack inttrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
+    /* ack interrupt, see section  21.6.1 on pg 493 of LPC17XX_UM */
     LPC_TIM0->IR = BIT(0);  
 
     g_timer_count++;
 
-    for (i = 0; i < g_delay_size; ++i) {
-        metadata = get_message_metadata(g_delay_array[i]);
+    for (i = 0; i < g_delayed_messages_count; ++i) {
+        metadata = get_message_metadata(g_delayed_messages[i]);
         destination_proc_id = metadata->destination_pid;
         receiving_proc = k_get_pcb_from_pid(metadata->destination_pid);
-        if (metadata->send_time == g_timer_count){
+        if (metadata->send_time <= g_timer_count) { 
             metadata->send_time = -1;
-            list_push(&receiving_proc->msg_queue, g_delay_array[i]);
+            list_push(&receiving_proc->msg_queue, g_delayed_messages[i]);
 
             if (receiving_proc->state == BLOCKED_ON_RECEIVE) {
                 receiving_proc->state = READY;
@@ -138,7 +141,10 @@ void c_TIMER0_IRQ_Handler(void)
                     __disable_irq();
                 }
             }
-        }
+        } else {
+					  g_delayed_messages[j++] = g_delayed_messages[i];
+				}
     }
+		g_delayed_messages_count = j;
 }
 

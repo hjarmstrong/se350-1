@@ -5,10 +5,11 @@
 #include "../proc/process.h"
 
 #define NUM_TESTS 6
+#define MIN_TEST_ID 1
 
 #define MSG_TEXT_1 'a'
 #define MSG_TEXT_2 'b'
-#define DELAY 1000 //milliseconds
+#define DELAY 100 //milliseconds
 
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
@@ -57,7 +58,6 @@ void set_test_procs() {
 void proc1(void) {
     int failures = 0;
     int passes = 0;
-    int pid = 1;
     int destination = 2;
     int i;
 
@@ -79,8 +79,13 @@ void proc1(void) {
     test_status[0] = -1;
     test_status[1] = -1;
 
-    set_process_priority(pid, LOWEST);//Wait for other processes to finish before printing results
+    // wait for all processes to finish :P
+		// this relies on the proc IDs specified in the manual
+		for (i = 2; i <= NUM_TESTS; i++) {
+        receive_message(&i);
+		}
 
+		// check statuses of all test processes
     for (i = 0; i < NUM_TESTS; i++) {
         uart1_put_string("G007_test: test ");
         uart1_put_char(i + 1 + 48);
@@ -130,6 +135,7 @@ void proc2(void) {
     release_memory_block(msg);
     
     //Done testing
+    send_message(1, NULL); // let the test runner know proc6 is done.
     set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();
@@ -164,7 +170,7 @@ void proc3(void) {
     end_time = get_time();
     //mark test 3 passed if it is late enough, otherwise make it failed
     if (end_time >= start_time + DELAY){
-        test_status[2] = 1;//TEST 3: delayed message recieved after the appropriate delay
+        test_status[2] = 1;//TEST 3: delayed e recieved after the appropriate delay
     } else {
         test_status[2] = -1;//message recieved too soon
     }
@@ -173,6 +179,7 @@ void proc3(void) {
     release_memory_block(msg);
 
     //Done testing
+    send_message(1, NULL); // let the test runner know proc6 is done.
     set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();
@@ -218,6 +225,7 @@ void proc4(void) {
     release_memory_block(received_msg);
 
     //Done testing
+    send_message(1, NULL); // let the test runner know proc6 is done.
     set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();
@@ -254,6 +262,7 @@ void proc5(void) {
     }
 
     //Done testing
+    send_message(1, NULL); // let the test runner know proc6 is done.
     set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();
@@ -264,7 +273,7 @@ void proc5(void) {
 //Test 6 sender (higher priority recipient preempts upon recieving message)
 void proc6(void) {
     int pid = 6;
-    int sender =5;
+    int sender = 5;
 
     //recieve message
     receive_message(&sender);
@@ -279,6 +288,7 @@ void proc6(void) {
     }
     
     //Done testing
+    send_message(1, NULL); // let the test runner know proc6 is done.
     set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();

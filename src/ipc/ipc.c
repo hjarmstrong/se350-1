@@ -47,14 +47,14 @@ int k_delayed_send(int destination_proc_id, void *message_envelope, int delay) {
 
     metadata->sender_pid = gp_current_process->pid;
     metadata->destination_pid = destination_proc_id;
-    metadata->send_time = (k_get_time() + delay) % ((U32)~0);
-
-    g_delay_array[0] = message_envelope;
-    g_delay_size++;
-    if (g_delay_size == (BLOCK_SIZE / sizeof(void *))) {
-        // TODO: too many delayed message, we should decide on a recovery stratagy for now, discrad all messages
-        g_delay_size = 0;
+    metadata->send_time = k_get_time() + delay;
+	
+    if (g_delayed_messages_count == (BLOCK_SIZE / sizeof(void *))) {
+			  // Overflow is... unlikely.
+			  // If needed, we discard old messages.
+        g_delayed_messages_count = 0;
     }
+    g_delayed_messages[g_delayed_messages_count++] = message_envelope;
 
     __enable_irq();
     return RTX_OK;
