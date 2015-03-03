@@ -107,12 +107,12 @@ U32 timer_init(U32 n_timer)
 /**
  * @brief: c TIMER0 IRQ Handler
  */
-void c_TIMER0_IRQ_Handler(void)
-{
+void c_TIMER0_IRQ_Handler(void) {
     int i;
-	  int j = 0; // iterator which writes messages that are not ready to
-	             // be sent to another process back into (and possibly
-	             // earlier in) g_delay_array.
+    int j = 0; // iterator which writes messages that are not ready to
+               // be sent to another process back into (and possibly
+               // earlier in) g_delay_array.
+	  int should_preempt = 0;
     msg_metadata *metadata;
     U32 destination_proc_id;
     PCB *receiving_proc;
@@ -136,15 +136,15 @@ void c_TIMER0_IRQ_Handler(void)
 
                 if (k_get_proc_table_from_pid(destination_proc_id)->m_priority <
                         k_get_proc_table_from_pid(metadata->sender_pid)->m_priority) {
-                    __enable_irq();
-                    k_release_processor();
-                    __disable_irq();
+										should_preempt = 1;
                 }
             }
         } else {
-					  g_delayed_messages[j++] = g_delayed_messages[i];
+            g_delayed_messages[j++] = g_delayed_messages[i];
 				}
     }
-		g_delayed_messages_count = j;
+    g_delayed_messages_count = j;
+		if (should_preempt) {
+        k_release_processor();
+    }
 }
-

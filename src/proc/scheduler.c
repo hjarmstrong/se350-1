@@ -16,13 +16,13 @@ void k_scheduler_init() {
 
     // Clear queues
     for (i = 0; i < NUM_QUEUES; ++i) {
-        for (j = NUM_IPROCS; j < NUM_PROCS; ++j) {
+        for (j = 0; j < NUM_PROCS; ++j) {
             g_queues[i][j] = NULL;
         }
     }
 
     // Add all processes to ready queues
-    for (i = NUM_IPROCS; i < NUM_PROCS; ++i) {
+    for (i = 0; i < NUM_PROCS; ++i) {
         k_enqueue_process(g_proc_table[i].m_pid);
     } 
 }

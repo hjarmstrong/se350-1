@@ -18,7 +18,7 @@ typedef enum PROC_STATE {
 } PROC_STATE;
 
 typedef struct PCB {
-    U32 pid;
+    int pid;
     void *sp;
     PROC_STATE state;
     List msg_queue;

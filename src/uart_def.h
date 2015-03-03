@@ -49,9 +49,4 @@
 */
 #define UART_8N1       0x83
 
-#ifndef NULL
-#define NULL 0
-#endif
-
-
 #endif /* !UART_DEF_H_ */

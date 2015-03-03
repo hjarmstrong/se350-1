@@ -75,6 +75,10 @@ void k_process_init() {
     heap_high_address = gp_stack;
 }
 
+/**
+ * Requires irq is disabled when this function is called. This function MUST only
+ * be called from k_release_processor()
+ */
 int k_process_switch(PCB *p_pcb_old) {
     PROC_STATE state = gp_current_process->state;
 
@@ -91,6 +95,9 @@ int k_process_switch(PCB *p_pcb_old) {
         __set_MSP((U32) gp_current_process->sp);
         __enable_irq();
         __rte();  // pop exception stack frame from the stack for a new processes
+				while (1) {
+            // _rte() should return, this should never be executed
+        }
     }
 
     // Switch processes if new process is READY
@@ -103,7 +110,6 @@ int k_process_switch(PCB *p_pcb_old) {
             p_pcb_old->sp = (U32 *) __get_MSP(); // save the old process's sp
             gp_current_process->state = RUNNING;
             __set_MSP((U32) gp_current_process->sp); //switch to the new proc's stack
-            __enable_irq();
         } else {
             gp_current_process = p_pcb_old; // revert back to the old proc on error
             __enable_irq();
@@ -111,9 +117,13 @@ int k_process_switch(PCB *p_pcb_old) {
         }
     }
 
+    __enable_irq();
     return RTX_OK;
 }
 
+/**
+ * If this function calls k_process_switch, irq is disabled first
+ */
 int k_release_processor(void) {    
     PCB *p_pcb_old = gp_current_process;
 

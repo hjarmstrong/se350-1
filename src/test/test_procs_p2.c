@@ -170,7 +170,7 @@ void proc3(void) {
     end_time = get_time();
     //mark test 3 passed if it is late enough, otherwise make it failed
     if (end_time >= start_time + DELAY){
-        test_status[2] = 1;//TEST 3: delayed e recieved after the appropriate delay
+        test_status[2] = 1;//TEST 3: delayed message recieved after the appropriate delay
     } else {
         test_status[2] = -1;//message recieved too soon
     }
