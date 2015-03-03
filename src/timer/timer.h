@@ -10,5 +10,9 @@
 
 extern volatile U32 g_timer_count; // current time in milliseconds
 extern U32 timer_init ( U32 n_timer );  /* initialize timer n_timer */
+void c_TIMER0_IRQ_Handler(void);
+
+extern void **g_delayed_messages;
+extern U32 g_delayed_messages_count;
 
 #endif /* ! _TIMER_H_ */

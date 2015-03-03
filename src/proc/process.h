@@ -13,19 +13,22 @@ typedef enum PROC_STATE {
     READY,
     RUNNING,
     BLOCKED_ON_MEMORY,
-		BLOCKED_ON_RECEIVE
+    BLOCKED_ON_RECEIVE,
+    BLOCKED_ON_UART_IO
 } PROC_STATE;
 
 typedef struct PCB {
-    U32 pid;
+    int pid;
     void *sp;
     PROC_STATE state;
-		List msg_queue;
+    List msg_queue;
 } PCB;
 
 /* Global Variables */
 
-#define NUM_PROCS (1 + NUM_TEST_PROCS)
+#define NUM_IPROCS 2
+#define NUM_SYS_PROCS (NUM_IPROCS + 1)
+#define NUM_PROCS (NUM_SYS_PROCS + NUM_TEST_PROCS)
 #define STACK_SIZE 0x100
 
 extern PCB **gp_pcbs;

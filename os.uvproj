@@ -446,6 +446,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\svc\hal.c</FilePath>
             </File>
+            <File>
+              <FileName>isr.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\svc\isr.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -520,6 +525,16 @@
               <FileName>timer.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\timer\timer.c</FilePath>
+            </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>CRT(uart0)</GroupName>
+          <Files>
+            <File>
+              <FileName>crt.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\CRT\crt.c</FilePath>
             </File>
           </Files>
         </Group>

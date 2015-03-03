@@ -28,7 +28,7 @@ int test_status[NUM_TESTS] = {0}; //0 means not yet run, 1 means success, -1 mea
 
 void set_test_procs() {
     int i;
-  
+
     g_test_procs[0].mpf_start_pc = &proc1;
     g_test_procs[1].mpf_start_pc = &proc2;
     g_test_procs[2].mpf_start_pc = &proc3;
@@ -41,7 +41,7 @@ void set_test_procs() {
         g_test_procs[i].m_stack_size = STACK_SIZE;
         g_test_procs[i].m_priority = HIGH;
     }
-    
+
     // These tests use a greater amount of memory than the standard STACK_SIZE
     g_test_procs[4].m_stack_size = 0x400;
     g_test_procs[5].m_stack_size = 0x400;
@@ -73,21 +73,21 @@ void proc1(void) {
             failures++;
         }
     }
-    
+
     uart0_put_string("G007_test: ");
     uart0_put_char(passes + char_offset);
     uart0_put_string("/");
     uart0_put_char(NUM_TESTS + char_offset);
     uart0_put_string(" tests OK\n\r");
-    
+
     uart0_put_string("G007_test: ");
     uart0_put_char(failures + char_offset);
     uart0_put_string("/");
     uart0_put_char(NUM_TESTS + char_offset);
     uart0_put_string(" tests FAIL\n\r");
-    
+
     uart0_put_string("G007_test: END\n\r");
-    
+
     while (1) {
         release_processor();
     }
@@ -97,25 +97,25 @@ void proc1(void) {
 void proc2(void) {
     int pid = 2;
     int i;
-  
+
     int *ptr = request_memory_block();
     *ptr = 42;
-    
+
     for (i = 0; i < 10; i++){//give other processes time to adjust memory
         release_processor();
     }
-    
+
     if (*ptr == 42) { //TEST 2: Allocated memory is not corrupted
         test_status[1] = 1;
     } else {
         test_status[1] = -1;
     }
-    
+
     release_memory_block(ptr);//return to initial state
-    
+
 
     set_process_priority(pid, LOWEST);
-    
+
     while (1) {
         release_processor();
     }
@@ -123,17 +123,17 @@ void proc2(void) {
 
 void proc3(void) {//Part 1 of preemption tests for priority change
     int pid = 3;
-  
+
     test_status[2] = 2;//2 tells proc4 that this process has run
     set_process_priority(pid, LOW);
-	
+
     //set_process_priority(pid, 2);
     if(test_status[2] != 1){//proc4 will set test_status[2] to 1 if it runs before we get to this line 
         test_status[2] = -1;
     }
-    
+
     //Begin test 4
-    
+
     while(test_status[3] == 0){//Wait for proc4 to run
         release_processor();
     }
@@ -150,17 +150,17 @@ void proc3(void) {//Part 1 of preemption tests for priority change
 void proc4(void) {//Part 2 of preemption tests for priority change
     int pid = 4;
     int part_1_pid = 3;
-    
+
     while(test_status[2] == 0){//Wait for proc3 to run
         release_processor();
     }
-    
+
     if(test_status[2] == 2){//TEST 3: proc3 was preempted when changing it's priority down, or else it would have already set test_status[2] to -1
         test_status[2] = 1;
     }//Otherwise, proc3 will indicate that the test failed
-    
+
     //Begin test 4
-    
+
     //set priority down so that proc3 can be set to higher priority
     set_process_priority(pid, MEDIUM);
     test_status[3] = 2;//indicates that this has run
@@ -199,9 +199,9 @@ void proc5(void) {//Part 1 of out of memory blocking queue tests
     for (i = 0; i < MANY_MEMORY_BLOCKS; i++){
         release_memory_block(allocated_memory[i]);
     }
-    
+
     set_process_priority(pid, LOWEST);
-    
+
     //Done testing, get out of the way
     while (1) {
         release_processor();
@@ -212,26 +212,26 @@ void proc6(void) {//Part 2 of out of memory blocking queue tests
     void *allocated_memory[MANY_MEMORY_BLOCKS];
     int pid = 6;
     int i;
-  
+
     while(test_status[4] != 2){//wait for proc5 to run
         release_processor();
     }
-    
+
     //Try to get more memory than is left after proc5. This process should get blocked at some point in this loop
     for (i = 0; i < MANY_MEMORY_BLOCKS; i++){
         allocated_memory[i] = request_memory_block();
     }
     //proc5 runs when this is blocked, marks test passed, then releases memory so this process will finish running
-    
+
     if (test_status[4] != 1){//This would indicate that this process never got blocked
         test_status[4] = -1;//if this process did not get blocked, the test should fail
     }
-    
+
     //release memory to clean up
     for (i = 0; i < MANY_MEMORY_BLOCKS; i++){
         release_memory_block(allocated_memory[i]);
     }
-    
+
     //Done testing, get out of the way
     set_process_priority(pid, LOWEST);
 

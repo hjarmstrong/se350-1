@@ -9,6 +9,8 @@
 #include "scheduler.h"
 #include "../rtx.h"
 #include "../svc/hal.h"
+#include "../crt/crt.h"
+#include "../timer/timer.h"
 
 #define INITIAL_xPSR 0x01000000
 
@@ -19,7 +21,7 @@ PCB *gp_current_process = NULL;
 
 /**
  * Requires k_memory_init to be called.
- * This initializes processes and finalizes memory initalization.
+ * This initializes processes and finalizes memory initialization.
  * Must be called before k_scheduler_init.
  */
 void k_process_init() {
@@ -33,16 +35,28 @@ void k_process_init() {
     g_proc_table[0].mpf_start_pc = &null_proc;
     g_proc_table[0].m_priority = PNULL;
 
+    // Initialize i-processes they are always ready to run, but never in a queue, so no priority is set    
+
+    // UART i-process
+    g_proc_table[1].m_pid = -1;
+    g_proc_table[1].m_stack_size = STACK_SIZE;
+    g_proc_table[1].mpf_start_pc = &c_UART0_IRQ_Handler;
+
+    // Timer i-process    
+    g_proc_table[2].m_pid = -2;
+    g_proc_table[2].m_stack_size = STACK_SIZE;
+    g_proc_table[2].mpf_start_pc = &c_TIMER0_IRQ_Handler;
+
     // Initialize test process tables
     set_test_procs();
     for (i = 0; i < NUM_TEST_PROCS; ++i) {
-        g_proc_table[i + 1].m_pid = g_test_procs[i].m_pid;
-        g_proc_table[i + 1].m_stack_size = g_test_procs[i].m_stack_size;
-        g_proc_table[i + 1].mpf_start_pc = g_test_procs[i].mpf_start_pc;
-        g_proc_table[i + 1].m_priority = g_test_procs[i].m_priority;
+        g_proc_table[i + NUM_SYS_PROCS].m_pid = g_test_procs[i].m_pid;
+        g_proc_table[i + NUM_SYS_PROCS].m_stack_size = g_test_procs[i].m_stack_size;
+        g_proc_table[i + NUM_SYS_PROCS].mpf_start_pc = g_test_procs[i].mpf_start_pc;
+        g_proc_table[i + NUM_SYS_PROCS].m_priority = g_test_procs[i].m_priority; // This line just copies an unused val
     }
 
-    // Initilize all processes
+    // Initialize all processes
     for (i = 0; i < NUM_PROCS; i++) {
         gp_pcbs[i]->pid = g_proc_table[i].m_pid;
         gp_pcbs[i]->state = NEW;
@@ -54,13 +68,17 @@ void k_process_init() {
             *(--sp) = 0x0;
         }
         gp_pcbs[i]->sp = sp;
-				gp_pcbs[i]->msg_queue = list_new(); 
+        gp_pcbs[i]->msg_queue = list_new(); 
     }
 
     // This variable must be set before we can use memory management functionality
     heap_high_address = gp_stack;
 }
 
+/**
+ * Requires irq is disabled when this function is called. This function MUST only
+ * be called from k_release_processor()
+ */
 int k_process_switch(PCB *p_pcb_old) {
     PROC_STATE state = gp_current_process->state;
 
@@ -75,7 +93,11 @@ int k_process_switch(PCB *p_pcb_old) {
         }
         gp_current_process->state = RUNNING;
         __set_MSP((U32) gp_current_process->sp);
+        __enable_irq();
         __rte();  // pop exception stack frame from the stack for a new processes
+				while (1) {
+            // _rte() should return, this should never be executed
+        }
     }
 
     // Switch processes if new process is READY
@@ -90,15 +112,22 @@ int k_process_switch(PCB *p_pcb_old) {
             __set_MSP((U32) gp_current_process->sp); //switch to the new proc's stack
         } else {
             gp_current_process = p_pcb_old; // revert back to the old proc on error
+            __enable_irq();
             return RTX_ERR;
         }
     }
 
+    __enable_irq();
     return RTX_OK;
 }
 
-int k_release_processor(void) {
+/**
+ * If this function calls k_process_switch, irq is disabled first
+ */
+int k_release_processor(void) {    
     PCB *p_pcb_old = gp_current_process;
+
+    __disable_irq();
     k_enqueue_process(p_pcb_old->pid);
     gp_current_process = k_scheduler();
 
@@ -106,6 +135,7 @@ int k_release_processor(void) {
     // find a new process to execute
     if (gp_current_process == NULL) {
         gp_current_process = p_pcb_old;
+        __enable_irq();
         return RTX_ERR;
     }
 
@@ -119,25 +149,25 @@ int k_release_processor(void) {
 }
 
 PCB *k_get_pcb_from_pid(int pid){
-		int i;
-	
-		for (i = 0; i < NUM_PROCS; ++i) {
+    int i;
+
+    for (i = 0; i < NUM_PROCS; ++i) {
         if (gp_pcbs[i]->pid == pid) {
             return gp_pcbs[i];
         }
     }
 
-		return NULL;
+    return NULL;
 }
 
 PROC_INIT *k_get_proc_table_from_pid(int pid){
-	int i;
-	
-		for (i = 0; i < NUM_PROCS; ++i) {
+    int i;
+
+    for (i = 0; i < NUM_PROCS; ++i) {
         if (g_proc_table[i].m_pid == pid) {
             return &g_proc_table[i];
         }
     }
 
-		return NULL;
+    return NULL;
 }
