@@ -5,6 +5,7 @@
 #include "../timer/timer.h"
 #include "../rtx.h"
 #include "../mem/mem.h"
+#include "../uart_polling.h"
 
 msg_metadata *get_message_metadata(void * message_envelope) {
     return (msg_metadata *) (((char *)message_envelope) + BLOCK_SIZE - sizeof(msg_metadata));
@@ -13,6 +14,11 @@ msg_metadata *get_message_metadata(void * message_envelope) {
 int k_send_message(int destination_proc_id, void *message_envelope) {
     PCB *receiving_proc;
     msg_metadata *metadata = get_message_metadata(message_envelope);
+	
+	  if (message_envelope == NULL) {
+			  uart1_put_string("k_send_message is NULL. Bad!\n");
+		    return RTX_ERR;
+    }
 
     __disable_irq();
 
@@ -68,9 +74,9 @@ void *k_receive_message(int *sender_id) {//blocks
         k_release_processor();
     }
 
+    __disable_irq();
     env = list_front(&gp_current_process->msg_queue);
 
-    __disable_irq();
     list_shift(&gp_current_process->msg_queue);
     __enable_irq();
 

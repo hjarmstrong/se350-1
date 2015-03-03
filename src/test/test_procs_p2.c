@@ -11,9 +11,13 @@
 #define MSG_TEXT_2 'b'
 #define DELAY 100 //milliseconds
 
+#define TEST_SUCCESS 1
+#define TEST_PENDING 0
+#define TEST_FAILURE -1
+
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
-int test_status[NUM_TESTS] = {0}; //0 means not yet run, 1 means success, -1 means failure. 
+int test_status[NUM_TESTS] = {TEST_PENDING}; //0 means not yet run, 1 means success, -1 means failure. 
 //Other values are possible in some tests. They are used for communication between processes, and are defined when used.
 
 typedef struct msgbuf {
@@ -60,6 +64,8 @@ void proc1(void) {
     int passes = 0;
     int destination = 2;
     int i;
+    int all_tests_done = 0;
+	  int pid = 1;
 
     int char_offset = 48;
     
@@ -76,20 +82,27 @@ void proc1(void) {
     send_message(destination, msg);
     
     //mark tests 1 and 2 failed (process 2 will mark the tests passed later if sucessful)
-    test_status[0] = -1;
-    test_status[1] = -1;
+    test_status[0] = TEST_FAILURE;
+    test_status[1] = TEST_FAILURE;
+    
+    // wait for all the processes to finish
+    set_process_priority(pid, LOWEST);
+		
+    while (!all_tests_done) {
+        all_tests_done = 1;
+        for (i = 0; i < NUM_TESTS; i++) {
+            if (test_status[i] == TEST_PENDING) {
+                all_tests_done = 0;
+                release_processor();
+            }
+        }
+      }
 
-    // wait for all processes to finish :P
-		// this relies on the proc IDs specified in the manual
-		for (i = 2; i <= NUM_TESTS; i++) {
-        receive_message(&i);
-		}
-
-		// check statuses of all test processes
+    // check statuses of all test processes
     for (i = 0; i < NUM_TESTS; i++) {
         uart1_put_string("G007_test: test ");
         uart1_put_char(i + 1 + 48);
-        if (test_status[i] == 1) {
+        if (test_status[i] == TEST_SUCCESS) {
             uart1_put_string(" OK\n\r");
             passes++;
         } else {
@@ -127,15 +140,14 @@ void proc2(void) {
     
     //check message contents
     if (msg->mtype == DEFAULT && msg->mtext[0] == MSG_TEXT_1){
-        test_status[0] = 1;//TEST 1: Message contents same as when sent
+        test_status[0] = TEST_SUCCESS;//TEST 1: Message contents same as when sent
     } else {
-        test_status[0] = -1;//message contents incorrect
+        test_status[0] = TEST_FAILURE;//message contents incorrect
     }
     
     release_memory_block(msg);
     
     //Done testing
-    send_message(1, NULL); // let the test runner know proc6 is done.
     set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();
@@ -161,7 +173,7 @@ void proc3(void) {
     //send with delay
     delayed_send(pid, msg, DELAY);
     
-    test_status[1] = 1;//TEST 2: Send does not block 
+    test_status[1] = TEST_SUCCESS;//TEST 2: Send does not block 
     //(if it did, we wouldn't reach this line because this process is sending the message to itself)
     
     receive_message(&pid);//don't need to store, because we have the original. Just checking the timing.
@@ -170,16 +182,15 @@ void proc3(void) {
     end_time = get_time();
     //mark test 3 passed if it is late enough, otherwise make it failed
     if (end_time >= start_time + DELAY){
-        test_status[2] = 1;//TEST 3: delayed message recieved after the appropriate delay
+        test_status[2] = TEST_SUCCESS;//TEST 3: delayed message recieved after the appropriate delay
     } else {
-        test_status[2] = -1;//message recieved too soon
+        test_status[2] = TEST_FAILURE;//message recieved too soon
     }
     
     //release message memory
     release_memory_block(msg);
 
     //Done testing
-    send_message(1, NULL); // let the test runner know proc6 is done.
     set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();
@@ -213,9 +224,9 @@ void proc4(void) {
     
     //if normal message, mark test passed
     if (received_msg->mtext[0] == MSG_TEXT_2){//should get the non delayed message before the delayed message even though it was sent later.
-        test_status[3] = 1;//TEST 4: normal message is recieved before delayed message
+        test_status[3] = TEST_SUCCESS;//TEST 4: normal message is recieved before delayed message
     } else {
-        test_status[3] = -1;
+        test_status[3] = TEST_FAILURE;
     }
     //release message memory
     release_memory_block(received_msg);
@@ -225,7 +236,6 @@ void proc4(void) {
     release_memory_block(received_msg);
 
     //Done testing
-    send_message(1, NULL); // let the test runner know proc6 is done.
     set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();
@@ -247,8 +257,8 @@ void proc5(void) {
     //set priority to medium so that proc6 will run until it blocks
     set_process_priority(pid, MEDIUM);
     //mark test 5 passed if it is already failed by proc6 not blocking
-    if (test_status[4] != -1){//This lower priority process should run before proc6 finishes receiving a message, because this process has not sent it yet.
-        test_status[4] = 1;//TEST 5: receive blocks. 
+    if (test_status[4] != TEST_FAILURE){//This lower priority process should run before proc6 finishes receiving a message, because this process has not sent it yet.
+        test_status[4] = TEST_SUCCESS;//TEST 5: receive blocks. 
     }
     
     //send message
@@ -257,12 +267,11 @@ void proc5(void) {
     
     
     //mark test 6 failed if it is not yet passed(should have been preempted on send by proc6
-    if (test_status[5] != 1){//If proc5 is preempted, proc6 will mark this test passed before this line...
-        test_status[5] = -1;//... so if this line runs, preemption did not work as expected.
+    if (test_status[5] != TEST_SUCCESS){//If proc5 is preempted, proc6 will mark this test passed before this line...
+        test_status[5] = TEST_FAILURE;//... so if this line runs, preemption did not work as expected.
     }
 
     //Done testing
-    send_message(1, NULL); // let the test runner know proc6 is done.
     set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();
@@ -278,17 +287,16 @@ void proc6(void) {
     //recieve message
     receive_message(&sender);
     //mark test 5 failed if not passed by proc5 while this process was blocked.
-    if (test_status[4] != 1){//If this line runs before proc5 sends a message...
-        test_status[4] = -1;//receive did not block.
+    if (test_status[4] != TEST_SUCCESS){//If this line runs before proc5 sends a message...
+        test_status[4] = TEST_FAILURE;//receive did not block.
     }
     
     //mark test 6 passed if it is not failed
-    if (test_status[5] != -1){//if proc5 stops running after sending a message until after this process has run
-        test_status[5] = 1;//TEST 6: higher priority recipient preempts upon recieving message
+    if (test_status[5] != TEST_FAILURE){//if proc5 stops running after sending a message until after this process has run
+        test_status[5] = TEST_SUCCESS;//TEST 6: higher priority recipient preempts upon recieving message
     }
     
     //Done testing
-    send_message(1, NULL); // let the test runner know proc6 is done.
     set_process_priority(pid, LOWEST);
     while (1) {
         release_processor();
