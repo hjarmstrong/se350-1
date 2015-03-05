@@ -397,9 +397,9 @@
               <FilePath>.\src\util\list.c</FilePath>
             </File>
             <File>
-              <FileName>uart_polling.c</FileName>
+              <FileName>map.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\util\uart_polling.c</FilePath>
+              <FilePath>.\src\util\map.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -435,6 +435,11 @@
               <FileName>timer.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\sys\timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart_polling.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\sys\uart_polling.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -476,10 +481,15 @@
               <FileType>1</FileType>
               <FilePath>.\src\user\test_procs_p2.c</FilePath>
             </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>sysproc</GroupName>
+          <Files>
             <File>
               <FileName>null.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\user\null.c</FilePath>
+              <FilePath>.\src\sysproc\null.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -876,9 +886,9 @@
               <FilePath>.\src\util\list.c</FilePath>
             </File>
             <File>
-              <FileName>uart_polling.c</FileName>
+              <FileName>map.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\util\uart_polling.c</FilePath>
+              <FilePath>.\src\util\map.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -914,6 +924,11 @@
               <FileName>timer.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\sys\timer.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart_polling.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\sys\uart_polling.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -955,10 +970,15 @@
               <FileType>1</FileType>
               <FilePath>.\src\user\test_procs_p2.c</FilePath>
             </File>
+          </Files>
+        </Group>
+        <Group>
+          <GroupName>sysproc</GroupName>
+          <Files>
             <File>
               <FileName>null.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\user\null.c</FilePath>
+              <FilePath>.\src\sysproc\null.c</FilePath>
             </File>
           </Files>
         </Group>

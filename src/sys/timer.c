@@ -112,7 +112,7 @@ void c_TIMER0_IRQ_Handler(void) {
     int j = 0; // iterator which writes messages that are not ready to
                // be sent to another process back into (and possibly
                // earlier in) g_delay_array.
-	  int should_preempt = 0;
+    int should_preempt = 0;
     msg_metadata *metadata;
     U32 destination_proc_id;
     PCB *receiving_proc;
@@ -123,6 +123,7 @@ void c_TIMER0_IRQ_Handler(void) {
 
     for (i = 0; i < g_delayed_messages_count; ++i) {
         metadata = get_message_metadata(g_delayed_messages[i]);
+        ASSERT(!!metadata) // Was metadata reserved?
         destination_proc_id = metadata->destination_pid;
         receiving_proc = k_get_pcb_from_pid(metadata->destination_pid);
         if (metadata->send_time <= g_timer_count) { 
@@ -136,15 +137,15 @@ void c_TIMER0_IRQ_Handler(void) {
 
                 if (k_get_proc_table_from_pid(destination_proc_id)->m_priority <
                         k_get_proc_table_from_pid(metadata->sender_pid)->m_priority) {
-										should_preempt = 1;
+                    should_preempt = 1;
                 }
             }
         } else {
             g_delayed_messages[j++] = g_delayed_messages[i];
-				}
+        }
     }
     g_delayed_messages_count = j;
-		if (should_preempt) {
+    if (should_preempt) {
         k_release_processor();
     }
 }
