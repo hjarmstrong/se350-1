@@ -401,6 +401,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\util\map.c</FilePath>
             </File>
+            <File>
+              <FileName>string.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\util\string.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -490,6 +495,11 @@
               <FileName>null.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\sysproc\null.c</FilePath>
+            </File>
+            <File>
+              <FileName>kcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\sysproc\kcd.c</FilePath>
             </File>
           </Files>
         </Group>
@@ -890,6 +900,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\util\map.c</FilePath>
             </File>
+            <File>
+              <FileName>string.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\util\string.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -979,6 +994,11 @@
               <FileName>null.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\sysproc\null.c</FilePath>
+            </File>
+            <File>
+              <FileName>kcd.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\sysproc\kcd.c</FilePath>
             </File>
           </Files>
         </Group>

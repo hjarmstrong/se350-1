@@ -12,6 +12,7 @@
 #include "../sys/crt.h"
 #include "../sys/timer.h"
 #include "../sysproc/null.h"
+#include "../sysproc/kcd.h"
 
 #define INITIAL_xPSR 0x01000000
 
@@ -40,10 +41,10 @@ void k_process_init() {
 
     g_proc_table[++procIdx].m_pid = PID_KCD; 
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
-    g_proc_table[procIdx].mpf_start_pc = &null_proc;
-    g_proc_table[procIdx].m_priority = PNULL;
+    g_proc_table[procIdx].mpf_start_pc = &kcd_proc;
+    g_proc_table[procIdx].m_priority = HIGH;
 
-    g_proc_table[++procIdx].m_pid = PID_NULL; 
+    g_proc_table[++procIdx].m_pid = PID_CRT; 
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
     g_proc_table[procIdx].mpf_start_pc = &null_proc;
     g_proc_table[procIdx].m_priority = PNULL;

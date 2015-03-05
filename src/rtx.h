@@ -172,6 +172,11 @@ extern void *k_receive_message(int *sender_id);
 #define receive_message(sender_id) _receive_message((U32)k_receive_message, sender_id)
 extern void *_receive_message(U32 p_func, int *sender_id) __SVC_0;
 
+typedef struct msgbuf {
+    int mtype;
+    char mtext[1];
+} msgbuf;
+
 #define DEFAULT 0
 #define KCD_REG 1
 

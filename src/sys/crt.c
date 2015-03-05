@@ -6,6 +6,7 @@
 #include "../core/scheduler.h"
 #include "../sys/uart.h"
 #include "../sys/uart_polling.h"
+#include "../util/string.h"
 
 char gp_input_buffer[] = "WE RESERVE ENOUGH SPACE TO SEND 51 BYTES TO THE KCD";
 char gp_output_buffer[] = "THIS SHOULD BE REPLACED WITH A MESSAGE SENT FROM THE CRT PROCESS";
@@ -144,6 +145,8 @@ void c_UART0_IRQ_Handler(void) {
     uint8_t IIR_IntId;        // Interrupt ID from IIR 
     char input_character, output_character;    
     LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef *)LPC_UART0;
+    msgbuf* msg_envelope;
+    int receive_pid;
     
     /* Reading IIR automatically acknowledges the interrupt */
     IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR 
@@ -152,18 +155,24 @@ void c_UART0_IRQ_Handler(void) {
         
         /* read UART. Read RBR will clear the interrupt */
          input_character = pUart->RBR;
-         if (input_character == '\n' || sizeof(gp_input_buffer) == gp_buffer_index) {
+         if (input_character == '\r' || get_input_buffer_size() == gp_buffer_index) {
              // TODO: CALL KCD with the buffer
              // message envelope should contain the input buffer
              // k_send_message(KCDID, void *message_envelope)
+             msg_envelope = k_request_memory_block();
+             msg_envelope->mtype = DEFAULT;
+             strncpy(msg_envelope->mtext, gp_input_buffer, gp_buffer_index);
+             msg_envelope->mtext[gp_buffer_index] = 0;
+             k_send_message(PID_KCD, msg_envelope);
              gp_buffer_index = 0;
          } else {
+             uart0_put_char(input_character); // echo (remove this)
              gp_input_buffer[gp_buffer_index] = input_character;
              gp_buffer_index++;
          } 
          
     } else if (IIR_IntId & IIR_THRE) {
-    /* THRE Interrupt, transmit holding register becomes empty */
+        /* THRE Interrupt, transmit holding register becomes empty */
     
         //TODO: use message instead of buffer
         if (gp_output_buffer[out_index] != '\0' ) { 
@@ -171,16 +180,20 @@ void c_UART0_IRQ_Handler(void) {
             pUart->THR = output_character;
             out_index++;
         } else {
-      // We hit the end of the string to be writen, reset and stop interupts
+            // We hit the end of the string to be writen, reset and stop interupts
             pUart->IER ^= IER_THRE; // toggle the IER_THRE bit 
             pUart->THR = '\0';
             out_index = 0;        
         }
-      return; // Writing a character does not preemt
+        return; // Writing a character does not preemt
     }    
     
     k_release_processor(); // The interupts preemt the interupted process.
 
     // When the process is rescheduled it will branch back here to the ISR.
     return;
+}
+
+int get_input_buffer_size(void) {
+    return sizeof(gp_input_buffer);
 }

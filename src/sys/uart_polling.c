@@ -134,8 +134,8 @@ int uart_put_number(int n_uart, int num) {
         num /= 10;
         ++i;
     }
-    for (j = i - 1; j >= 0; --i) {
+    for (j = i - 1; j >= 0; --j) {
         uart_put_char(n_uart, stack[j]);
     }
-		return 0;
+    return 0;
 }

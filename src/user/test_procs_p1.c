@@ -2,9 +2,9 @@
 #include "usr_proc.h"
 #include "rtx.h"
 
-#include "../proc/process.h"
+#include "../core/process.h"
 
-#define MANY_MEMORY_BLOCKS 150 //should be more than 1/2 the available memory, but not all of it
+#define MANY_MEMORY_BLOCKS 120 //should be more than 1/2 the available memory, but not all of it
 #define NUM_TESTS 5
 
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
@@ -56,37 +56,37 @@ void proc1(void) {
 
     int char_offset = 48;
 
-    uart0_put_string("G007_test: START\n\r");
+    uart1_put_string("G007_test: START\n\r");
 
     test_status[0] = 1;//TEST 1: a process is started and runs
 
     set_process_priority(pid, LOWEST);
 
     for (i = 0; i < NUM_TESTS; i++) {
-        uart0_put_string("G007_test: test ");
-        uart0_put_char(i + 1 + 48);
+        uart1_put_string("G007_test: test ");
+        uart1_put_char(i + 1 + 48);
         if (test_status[i] == 1) {
-            uart0_put_string(" OK\n\r");
+            uart1_put_string(" OK\n\r");
             passes++;
         } else {
-            uart0_put_string(" FAIL\n\r");
+            uart1_put_string(" FAIL\n\r");
             failures++;
         }
     }
 
-    uart0_put_string("G007_test: ");
-    uart0_put_char(passes + char_offset);
-    uart0_put_string("/");
-    uart0_put_char(NUM_TESTS + char_offset);
-    uart0_put_string(" tests OK\n\r");
+    uart1_put_string("G007_test: ");
+    uart1_put_char(passes + char_offset);
+    uart1_put_string("/");
+    uart1_put_char(NUM_TESTS + char_offset);
+    uart1_put_string(" tests OK\n\r");
 
-    uart0_put_string("G007_test: ");
-    uart0_put_char(failures + char_offset);
-    uart0_put_string("/");
-    uart0_put_char(NUM_TESTS + char_offset);
-    uart0_put_string(" tests FAIL\n\r");
+    uart1_put_string("G007_test: ");
+    uart1_put_char(failures + char_offset);
+    uart1_put_string("/");
+    uart1_put_char(NUM_TESTS + char_offset);
+    uart1_put_string(" tests FAIL\n\r");
 
-    uart0_put_string("G007_test: END\n\r");
+    uart1_put_string("G007_test: END\n\r");
 
     while (1) {
         release_processor();

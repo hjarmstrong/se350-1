@@ -1,11 +1,8 @@
-#ifndef SYS_PROCESS_H
-#define SYS_PROCESS_H
-
-/* UART0 Globals for reading from keyboard */
-
+#ifndef NULL_H
+#define NULL_H
 
 /* System Processes */
 
 void null_proc(void);
 
-#endif // SYS_PROCESS_H
+#endif // NULL_H

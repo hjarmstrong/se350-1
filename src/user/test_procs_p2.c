@@ -20,11 +20,6 @@ PROC_INIT g_test_procs[NUM_TEST_PROCS];
 int test_status[NUM_TESTS] = {TEST_PENDING}; //0 means not yet run, 1 means success, -1 means failure. 
 //Other values are possible in some tests. They are used for communication between processes, and are defined when used.
 
-typedef struct msgbuf {
-    int mtype; 
-    char mtext[1];
-} msgbuf;
-
 /* GUIDE TO PRIORITIES:
  * HIGH: running test
  * MEDIUM/LOW: used for preemption/blocking tests

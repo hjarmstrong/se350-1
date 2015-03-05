@@ -1,13 +1,15 @@
-#include "../list/list.h"
-#include "../printf.h"
+#include "../util/list.h"
+#include "../sys/uart_polling.h"
+#include "../sysproc/null.h"
 
+PROC_INIT g_test_procs[NUM_TEST_PROCS];
 
 void test_new_list() {
     List l = list_new();
 
     ASSERT(list_empty(&l)) // test_new_list FAILED!
 
-    printf("test_new_list PASSED!\n\r");
+    uart1_put_string("test_new_list PASSED!\n\r");
 }
 
 void test_one_item() {
@@ -24,7 +26,7 @@ void test_one_item() {
 
     ASSERT(list_empty(&l)) // test_one_item (4) FAILED!
 
-    printf("test_one_item PASSED!\n\r");
+    uart1_put_string("test_one_item PASSED!\n\r");
 }
 
 void test_push_shift_many_items() {
@@ -42,7 +44,7 @@ void test_push_shift_many_items() {
 
     ASSERT(list_empty(&l)) // test_push_shift_many_items (2) FAILED!
 
-    printf("test_push_shift_many_items PASSED!\n\r");
+    uart1_put_string("test_push_shift_many_items PASSED!\n\r");
 }
 
 void test_push_pop_many_items() {
@@ -61,15 +63,54 @@ void test_push_pop_many_items() {
 
     ASSERT(list_empty(&l)) // test_push_pop_many_items (3) FAILED!
 
-    printf("test_push_pop_many_items PASSED!\n\r");
+    uart1_put_string("test_push_pop_many_items PASSED!\n\r");
 }
 
 
-void run_list_tests() {
-    test_new_list();
-    test_one_item();
-    test_push_shift_many_items();
-    test_push_pop_many_items();
+void test_finished() {
+    uart1_put_string("All list tests PASSED!\n\r");
+}
 
-    printf("All list tests PASSED!\n\r");
+int k_run_ktests() {
+		test_new_list();
+		test_one_item();
+		test_push_shift_many_items();
+		test_push_pop_many_items();
+		test_finished();
+	  return 0;
+}
+#define run_ktests(pid) _run_ktests((U32)k_run_ktests)
+extern int _run_ktests(U32 p_func) __SVC_0;
+
+void run_tests() {
+		run_ktests();
+	  while(1) {
+				release_processor();
+    }
+}
+
+void set_test_procs() {
+    int i;
+    for( i = 0; i < NUM_TEST_PROCS; i++ ) {
+        g_test_procs[i].m_pid=(U32)(i+1);
+        g_test_procs[i].m_stack_size=0x100;
+    }
+  
+    g_test_procs[0].mpf_start_pc = &run_tests;
+    g_test_procs[0].m_priority   = HIGH;
+    
+    g_test_procs[1].mpf_start_pc = &null_proc;
+    g_test_procs[1].m_priority   = PNULL;
+    
+    g_test_procs[2].mpf_start_pc = &null_proc;
+    g_test_procs[2].m_priority   = PNULL;
+    
+    g_test_procs[3].mpf_start_pc = &null_proc;
+    g_test_procs[3].m_priority   = PNULL;
+    
+    g_test_procs[4].mpf_start_pc = &null_proc;
+    g_test_procs[4].m_priority   = PNULL;
+		
+    g_test_procs[5].mpf_start_pc = &null_proc;
+    g_test_procs[5].m_priority   = PNULL;
 }

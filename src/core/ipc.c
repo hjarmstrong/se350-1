@@ -9,12 +9,14 @@
 #include "../sys/uart_polling.h"
 #include "../sys/timer.h"
 
+Map metadata_map;
+
 msg_metadata *get_message_metadata(void *message_envelope) {
-    return (msg_metadata *) map_get(message_envelope);
+    return (msg_metadata *) map_get(&metadata_map, message_envelope);
 }
 
 msg_metadata *reserve_message_metadata(void *message_envelope) {
-    return (msg_metadata *) map_reserve(message_envelope);
+    return (msg_metadata *) map_reserve(&metadata_map, message_envelope);
 }
 
 int k_send_message(int destination_proc_id, void *message_envelope) {
@@ -91,7 +93,7 @@ void *k_receive_message(int *sender_id) { // blocks
     list_shift(&gp_current_process->msg_queue);
     __enable_irq();
 
-    map_remove(env); // map is used in delayed send. no-op if not in map
+    map_remove(&metadata_map, env); // map is used in delayed send. no-op if not in map
 
     return env;
 }
