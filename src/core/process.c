@@ -9,10 +9,12 @@
 #include "process.h"
 #include "scheduler.h"
 #include "../sys/hal.h"
-#include "../sys/crt.h"
+#include "../sys/uart.h"
 #include "../sys/timer.h"
-#include "../sysproc/null.h"
+#include "../sysproc/crt.h"
 #include "../sysproc/kcd.h"
+#include "../sysproc/null.h"
+#include "../user/clock.h"
 
 #define INITIAL_xPSR 0x01000000
 
@@ -46,14 +48,21 @@ void k_process_init() {
 
     g_proc_table[++procIdx].m_pid = PID_CRT; 
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
-    g_proc_table[procIdx].mpf_start_pc = &null_proc;
-    g_proc_table[procIdx].m_priority = PNULL;
+    g_proc_table[procIdx].mpf_start_pc = &crt_proc;
+    g_proc_table[procIdx].m_priority = HIGH;
 
     ASSERT(procIdx + 1 == NUM_SYS_PROCS) // Check NUM_SYS_PROCS
 
-    // Initialize i-processes they are always ready to run, but never in a queue, so no priority is set    
+    // Initizlize user processes
+    g_proc_table[++procIdx].m_pid = PID_A;
+    g_proc_table[procIdx].m_stack_size = STACK_SIZE;
+    g_proc_table[procIdx].mpf_start_pc = &clock_proc;
+    g_proc_table[procIdx].m_priority = MEDIUM;
 
-    // Initialize i-processes
+    ASSERT(procIdx + 1 == NUM_SYS_PROCS + NUM_USR_PROCS) // Check NUM_USR_PROCS
+
+    // Initialize i-processes: they are always ready to run, but never in a queue, so no priority is set    
+
     g_proc_table[++procIdx].m_pid = PID_TIMER_IPROC;
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
     g_proc_table[procIdx].mpf_start_pc = &c_TIMER0_IRQ_Handler;
@@ -62,7 +71,7 @@ void k_process_init() {
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
     g_proc_table[procIdx].mpf_start_pc = &c_UART0_IRQ_Handler;
 
-    ASSERT(procIdx + 1 == NUM_SYS_PROCS + NUM_IPROCS) // Check NUM_IPROCS
+    ASSERT(procIdx + 1 == NUM_SYS_PROCS + NUM_IPROCS + NUM_USR_PROCS) // Check NUM_IPROCS
 
     // Initialize test processes
     set_test_procs();
@@ -77,7 +86,7 @@ void k_process_init() {
         g_proc_table[procIdx].m_priority = g_test_procs[i].m_priority;
     }
 
-    ASSERT(procIdx + 1 == NUM_SYS_PROCS + NUM_IPROCS + NUM_TEST_PROCS) // Check NUM_TEST_PROCS
+    ASSERT(procIdx + 1 == NUM_SYS_PROCS + NUM_IPROCS + NUM_USR_PROCS + NUM_TEST_PROCS) // Check NUM_TEST_PROCS
     ASSERT(procIdx + 1 == NUM_PROCS) // Check NUM_PROCS
 
     // Initialize all processes

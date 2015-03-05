@@ -1,4 +1,4 @@
-#include "uart_polling.h"
+#include "uart.h"
 #include "usr_proc.h"
 #include "rtx.h"
 
@@ -66,7 +66,7 @@ void proc1(void) {
     
     msgbuf *msg;
 
-    uart1_put_string("G007_test: START\n\r");
+    crt_send_string("G007_test: START\n\r");
     
     //create a message to send to process 2
     msg = request_memory_block();
@@ -95,30 +95,30 @@ void proc1(void) {
 
     // check statuses of all test processes
     for (i = 0; i < NUM_TESTS; i++) {
-        uart1_put_string("G007_test: test ");
-        uart1_put_char(i + 1 + 48);
+        crt_send_string("G007_test: test ");
+        crt_send_char(i + 1 + 48);
         if (test_status[i] == TEST_SUCCESS) {
-            uart1_put_string(" OK\n\r");
+            crt_send_string(" OK\n\r");
             passes++;
         } else {
-            uart1_put_string(" FAIL\n\r");
+            crt_send_string(" FAIL\n\r");
             failures++;
         }
     }
     
-    uart1_put_string("G007_test: ");
-    uart1_put_char(passes + char_offset);
-    uart1_put_string("/");
-    uart1_put_char(NUM_TESTS + char_offset);
-    uart1_put_string(" tests OK\n\r");
+    crt_send_string("G007_test: ");
+    crt_send_char(passes + char_offset);
+    crt_send_string("/");
+    crt_send_char(NUM_TESTS + char_offset);
+    crt_send_string(" tests OK\n\r");
     
-    uart1_put_string("G007_test: ");
-    uart1_put_char(failures + char_offset);
-    uart1_put_string("/");
-    uart1_put_char(NUM_TESTS + char_offset);
-    uart1_put_string(" tests FAIL\n\r");
+    crt_send_string("G007_test: ");
+    crt_send_char(failures + char_offset);
+    crt_send_string("/");
+    crt_send_char(NUM_TESTS + char_offset);
+    crt_send_string(" tests FAIL\n\r");
     
-    uart1_put_string("G007_test: END\n\r");
+    crt_send_string("G007_test: END\n\r");
     
     while (1) {
         release_processor();

@@ -143,9 +143,9 @@ void print_list(List *list) {
 
     if (list->first) {
         for (i = 0; i < list->first->count; ++i) {
-            uart0_put_char(((PCB *)(&list->first->data)[i])->pid + '0');
+            uart1_put_char(((PCB *)(&list->first->data)[i])->pid + '0');
         }
     }
-    uart0_put_string("\n\r");
+    uart1_put_string("\n\r");
 #endif
 }

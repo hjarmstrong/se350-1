@@ -1,28 +1,11 @@
 #include <LPC17xx.h>
 
 #include "../rtx.h"
-#include "../sys/crt.h"
+#include "../sys/uart.h"
 #include "../sys/uart_polling.h"
+#include "../sysproc/crt.h"
 #include "../util/map.h"
-
-/**
- * Hashes a string using the djb2 algorithm.
- * Modified from code on http://www.cse.yorku.ca/~oz/hash.html
- */
-static void *hash_string(const char* str, int len) {
-    unsigned long hash = 5381;
-    int c;
-
-    while (c = *str++ && len--) {
-        hash = ((hash << 5) + hash) + c; /* hash * 33 + c */
-    }
-
-    if (!hash) {
-        ++hash;
-    }
-
-    return (void *) hash;
-}
+#include "../util/string.h"
 
 void kcd_proc(void) {
     int pid_from = -1;
@@ -42,9 +25,10 @@ void kcd_proc(void) {
             // Assumption: all messages are less than 51 characters
             if (buf->mtext[0] == '%') {
                 for (i = 1; !!buf->mtext[i]; ++i) {
-                    hash = hash_string(&buf->mtext[i], i - 1);
+                    hash = hash_string(&buf->mtext[1], i - 1);
                     if (map_is_in(&recipient_map, hash)) {
                         recipients = map_get(&recipient_map, hash);
+                        message_ack = 1;
                         for (j = 0; !!recipients[j] && j < MAX_MAP_ELEMENTS; ++j) {
                             send_message(recipients[j], buf);
                         }
@@ -52,9 +36,6 @@ void kcd_proc(void) {
                 }
             }
             if (!message_ack) {
-                uart0_put_string("Unacknowledged");
-                uart0_put_string((const unsigned char*) buf->mtext);
-                uart0_put_string("\r\n");
                 release_memory_block(buf);
             }
         } else if (buf->mtype == KCD_REG) {
@@ -65,6 +46,7 @@ void kcd_proc(void) {
             }
             // In the case of a full mailbox, we discard the last unread message.
             recipients[i] = pid_from;
+            release_memory_block(buf);
         }
     }
 }

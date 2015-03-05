@@ -40,13 +40,13 @@ void proc1(void)
     int ret_val = 10;
     while ( 1) {
         if ( i != 0 && i%5 == 0 ) {
-            uart0_put_string("\n\r");
+            uart1_put_string("\n\r");
             ret_val = release_processor();
 #ifdef DEBUG_0
             printf("proc1: ret_val=%d\n", ret_val);
 #endif /* DEBUG_0 */
         }
-        uart0_put_char('A' + i%26);
+        uart1_put_char('A' + i%26);
         i++;
     }
 }
@@ -61,13 +61,13 @@ void proc2(void)
     int ret_val = 20;
     while ( 1) {
         if ( i != 0 && i%5 == 0 ) {
-            uart0_put_string("\n\r");
+            uart1_put_string("\n\r");
             ret_val = release_processor();
 #ifdef DEBUG_0
             printf("proc2: ret_val=%d\n", ret_val);
 #endif /* DEBUG_0 */
         }
-        uart0_put_char('0' + i%10);
+        uart1_put_char('0' + i%10);
         i++;
     }
 }

@@ -1,6 +1,6 @@
 #include <LPC17xx.h>
 #include "../rtx.h"
-#include "crt.h"
+#include "uart.h"
 
 #include "../core/process.h"
 #include "../core/scheduler.h"
@@ -13,11 +13,12 @@ char gp_output_buffer[] = "THIS SHOULD BE REPLACED WITH A MESSAGE SENT FROM THE 
 
 U8 gp_buffer_index = 0;
 
-U8 out_index; // TODO: REPLACE ME TOO
+U8 out_index;
+
+static LPC_UART_TypeDef *pUart;
+static volatile int gp_ready = 1;
 
 U32 uart_irq_init(U32 n_uart) {
-
-    LPC_UART_TypeDef *pUart;
 
     if (n_uart == 0) {
         /*
@@ -146,7 +147,6 @@ void c_UART0_IRQ_Handler(void) {
     char input_character, output_character;    
     LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef *)LPC_UART0;
     msgbuf* msg_envelope;
-    int receive_pid;
     
     /* Reading IIR automatically acknowledges the interrupt */
     IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR 
@@ -166,7 +166,6 @@ void c_UART0_IRQ_Handler(void) {
              k_send_message(PID_KCD, msg_envelope);
              gp_buffer_index = 0;
          } else {
-             uart0_put_char(input_character); // echo (remove this)
              gp_input_buffer[gp_buffer_index] = input_character;
              gp_buffer_index++;
          } 
@@ -174,7 +173,6 @@ void c_UART0_IRQ_Handler(void) {
     } else if (IIR_IntId & IIR_THRE) {
         /* THRE Interrupt, transmit holding register becomes empty */
     
-        //TODO: use message instead of buffer
         if (gp_output_buffer[out_index] != '\0' ) { 
             output_character = gp_output_buffer[out_index];
             pUart->THR = output_character;
@@ -184,6 +182,7 @@ void c_UART0_IRQ_Handler(void) {
             pUart->IER ^= IER_THRE; // toggle the IER_THRE bit 
             pUart->THR = '\0';
             out_index = 0;        
+      	    gp_ready = 1;
         }
         return; // Writing a character does not preemt
     }    
@@ -196,4 +195,15 @@ void c_UART0_IRQ_Handler(void) {
 
 int get_input_buffer_size(void) {
     return sizeof(gp_input_buffer);
+}
+int get_output_buffer_size(void) {
+    return sizeof(gp_output_buffer);
+}
+void k_crt_write_output_buffer(const char* c) {
+    strncpy(gp_output_buffer, c, get_output_buffer_size());
+    pUart->IER = IER_THRE | IER_RLS | IER_RBR;
+    gp_ready = 0;
+    while(!gp_ready) {
+        release_processor();
+    }
 }
