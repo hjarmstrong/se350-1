@@ -74,6 +74,7 @@ int k_delayed_send(int destination_proc_id, void *message_envelope, int delay) {
 
 void *k_receive_message(int *sender_id) { // blocks
     void *env;
+    msg_metadata *metadata = NULL;
 
     while (list_empty(&gp_current_process->msg_queue)) {
         gp_current_process->state = BLOCKED_ON_RECEIVE;
@@ -82,6 +83,10 @@ void *k_receive_message(int *sender_id) { // blocks
 
     __disable_irq();
     env = list_front(&gp_current_process->msg_queue);
+    if (sender_id) {
+        metadata = get_message_metadata(env);
+        *sender_id = metadata->sender_pid;
+    }
 
     list_shift(&gp_current_process->msg_queue);
     __enable_irq();
