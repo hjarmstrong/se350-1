@@ -14,5 +14,6 @@
 *.Vishwas
 os.uvgui.*
 os.plg
+UART_irq.plg
 .*.swp
 GitPortable/
