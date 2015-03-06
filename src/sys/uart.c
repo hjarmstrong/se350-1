@@ -155,7 +155,7 @@ void c_UART0_IRQ_Handler(void) {
         
         /* read UART. Read RBR will clear the interrupt */
          input_character = pUart->RBR;
-         if (input_character == '\r' || get_input_buffer_size() == gp_buffer_index) {
+         if (input_character == '\r' || input_character == '\n' || get_input_buffer_size() == gp_buffer_index) {
              // TODO: CALL KCD with the buffer
              // message envelope should contain the input buffer
              // k_send_message(KCDID, void *message_envelope)

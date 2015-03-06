@@ -16,7 +16,6 @@ void kcd_proc(void) {
     int i, j;
     int message_ack;
 
-    set_process_priority(PID_KCD, HIGH);
     while(1) {
         buf = receive_message(&pid_from);
         if (buf->mtype == DEFAULT) {

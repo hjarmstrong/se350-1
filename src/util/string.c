@@ -40,7 +40,11 @@ void *hash_string(const char* str, int len) {
     unsigned long hash = 5381;
     int c;
 
-    while ((c = *str++) && (len--)) {
+    while (1) {
+        c = *str++;
+        if (!c || !len--) {
+            break;
+        }
         hash = ((hash << 5) + hash) + c; /* hash * 33 + c + 1 */
     }
 

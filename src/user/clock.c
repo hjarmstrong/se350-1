@@ -3,14 +3,16 @@
 #include "../sys/timer.h"
 #include "../util/string.h"
 
+#define ONE_SECOND 100 // FIXME
+
 static int enabled = 0;
 static int seconds = 0;
 static int mins = 0;
 static int hours = 0;
 
 static void backup(int n) {
-    static unsigned char buffer[80];
-    int i = 0;
+    static char buffer[80];
+    int i;
     if (!n) {
         return;
     }
@@ -22,10 +24,10 @@ static void backup(int n) {
 }
 
 static void display() {
-    static unsigned char buffer[80];
+    static char buffer[8];
     backup(strlen((const char*) buffer) + 2); // TODO: Why is there a SPACE?
 
-    strncpy((char *) buffer, "hh:mm:ss", 80);
+    strncpy((char *) buffer, "hh:mm:ss", 8);
     buffer[0] = (hours/10) + '0';
     buffer[1] = (hours%10) + '0';
     buffer[3] = (mins/10) + '0';
@@ -59,26 +61,26 @@ static void tick() {
 }
 
 void clock_proc() {
-    void *clock_msg = (void *) 0x1337c10c;
+	  // 0xffffffff is a number that is unlikely to be used as a message
+	  // and out of range and will hard-fault if written to
+    void *clock_msg = (void *) 0xffffffff; 
     int recipient = -1;
     msgbuf *kcd_reg = request_memory_block();
     msgbuf *received = NULL;
     int len = -1;
 
     kcd_reg->mtype = KCD_REG;
-    strncpy(kcd_reg->mtext, "W", 64);
+    strncpy(kcd_reg->mtext, "W", 1);
     send_message(PID_KCD, kcd_reg);
 
-    delayed_send(PID_A, clock_msg, 100);
+    delayed_send(PID_A, clock_msg, ONE_SECOND);
     while (1) {
         received = receive_message(&recipient);
         if (received == clock_msg) {
             if (enabled) {
                 tick();
             }
-            // messages are supposed to be unique.
-            clock_msg = (void *) (((int) clock_msg) + 1);
-            delayed_send(PID_A, clock_msg, 100);
+            delayed_send(PID_A, clock_msg, ONE_SECOND);
         } else {
             if (!strncmp(received->mtext, "%WR", 3)) {
                 reset();

@@ -2,7 +2,7 @@
 #define CRT_H
 
 void crt_send_char(char);
-void crt_send_string(const unsigned char*);
+void crt_send_string(const char*);
 
 /* System Processes */
 
