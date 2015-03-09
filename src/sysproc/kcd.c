@@ -17,7 +17,6 @@ void kcd_proc(void) {
     int message_ack;
     int should_clr;
     int msg_start = 0;
-    char *msg;
     
     map_clear(&recipient_map);
 
@@ -29,10 +28,12 @@ void kcd_proc(void) {
             while (buf->mtext[msg_start] != '%' && msg_start < get_output_buffer_size() && buf->mtext[msg_start] != '\0') {
                 ++msg_start;
             }
-            msg = &buf->mtext[msg_start];
-            if (msg[0] == '%') {
-                for (i = 1; !!msg[i]; ++i) {
-                    hash = hash_string(&msg[1], i - 1);
+            if (msg_start != 0) {
+                strncpy(buf->mtext, buf->mtext + msg_start, get_output_buffer_size());
+            }
+            if (buf->mtext[0] == '%') {
+                for (i = 1; !!buf->mtext[i]; ++i) {
+                    hash = hash_string(&buf->mtext[1], i - 1);
                     if (map_is_in(&recipient_map, hash)) {
                         recipients = map_get(&recipient_map, hash);
                         message_ack = 1;

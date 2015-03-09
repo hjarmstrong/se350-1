@@ -15,17 +15,8 @@ static int hours = 0;
 static char display_buffer[CLOCK_BUFFER_SIZE];
 
 static void cls() {
-    int i;
-    int n = strlen((const char *) display_buffer);
-    if (!n) {
-        return;
-    }
-    for (i = 0; i < n && i < CLOCK_BUFFER_SIZE; ++i) {
-        display_buffer[i] = 0x08; // Backspace
-    }
-    display_buffer[i] = 0;
+    strncpy(display_buffer, "\r\n", 3);
     crt_send_string(display_buffer);
-    display_buffer[0] = 0;
 }
 
 
@@ -80,7 +71,7 @@ void clock_proc() {
     int len = -1;
 
     kcd_reg->mtype = KCD_REG;
-    strncpy(kcd_reg->mtext, "W", 1);
+    strncpy(kcd_reg->mtext, "W", 2);
     send_message(PID_KCD, kcd_reg);
 
     delayed_send(PID_A, clock_msg, ONE_SECOND);

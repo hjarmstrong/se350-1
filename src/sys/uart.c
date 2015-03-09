@@ -160,6 +160,19 @@ void c_UART0_IRQ_Handler(void) {
         
         /* read UART. Read RBR will clear the interrupt */
          input_character = pUart->RBR;
+        
+         // Echo -- caller keeps pointer
+         gp_echoBuffer->mtype = CALLER_MANAGED_PRINT;
+         gp_echoBuffer->mtext[0] = input_character;
+         if (input_character == '\r') {
+            gp_echoBuffer->mtext[1] = '\n';
+            gp_echoBuffer->mtext[2] = '\0';
+         } else {
+            gp_echoBuffer->mtext[1] = '\0';
+         }
+         k_send_message(PID_CRT, gp_echoBuffer);
+         
+         // Invoke KCD
          if (input_character == '\r' || input_character == '\n' || get_input_buffer_size() == gp_buffer_index) {
              // message envelope should contain the input buffer
              msg_envelope = k_request_memory_block();
@@ -172,16 +185,6 @@ void c_UART0_IRQ_Handler(void) {
              gp_input_buffer[gp_buffer_index] = input_character;
              gp_buffer_index++;
          }
-         // Echo -- caller keeps pointer
-         gp_echoBuffer->mtype = CALLER_MANAGED_PRINT;
-         gp_echoBuffer->mtext[0] = input_character;
-         if (input_character == '\r') {
-            gp_echoBuffer->mtext[1] = '\n';
-            gp_echoBuffer->mtext[2] = '\0';
-         } else {
-            gp_echoBuffer->mtext[1] = '\0';
-         }
-         k_send_message(PID_CRT, gp_echoBuffer);
          
     } else if (IIR_IntId & IIR_THRE) {
         /* THRE Interrupt, transmit holding register becomes empty */
