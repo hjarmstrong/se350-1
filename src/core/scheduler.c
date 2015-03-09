@@ -22,7 +22,7 @@ void k_scheduler_init() {
     // Add all processes to ready queues
     for (i = 0; i < NUM_PROCS; ++i) {
         k_enqueue_process(g_proc_table[i].m_pid);
-    } 
+    }
 }
 
 int k_dequeue_process(int process_id) {

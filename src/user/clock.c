@@ -2,6 +2,8 @@
 #include "../sysproc/crt.h"
 #include "../sys/timer.h"
 #include "../util/string.h"
+#include "clock.h"
+
 
 #define ONE_SECOND 1000
 
@@ -18,7 +20,6 @@ static void cls() {
     strncpy(display_buffer, "\r\n", 3);
     crt_send_string(display_buffer);
 }
-
 
 static void display() {
     cls();

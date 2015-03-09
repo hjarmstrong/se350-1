@@ -15,6 +15,7 @@
 #include "../sysproc/kcd.h"
 #include "../sysproc/null.h"
 #include "../user/clock.h"
+#include "../user/debug.h"
 
 #define INITIAL_xPSR 0x01000000
 
@@ -54,16 +55,20 @@ void k_process_init() {
 
     ASSERT(procIdx + 1 == NUM_SYS_PROCS) // Check NUM_SYS_PROCS
 
-    // Initizlize user processes
+    // Initialize user processes
     g_proc_table[++procIdx].m_pid = PID_A;
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
     g_proc_table[procIdx].mpf_start_pc = &clock_proc;
     g_proc_table[procIdx].m_priority = MEDIUM;
+		
+		g_proc_table[++procIdx].m_pid = PID_B;
+    g_proc_table[procIdx].m_stack_size = STACK_SIZE;
+    g_proc_table[procIdx].mpf_start_pc = &debug_proc;
+    g_proc_table[procIdx].m_priority = MEDIUM;
 
     ASSERT(procIdx + 1 == NUM_SYS_PROCS + NUM_USR_PROCS) // Check NUM_USR_PROCS
 
-    // Initialize i-processes: they are always ready to run, but never in a queue, so no priority is set    
-
+    // Initialize i-processes: they are always ready to run, but never in a queue, so no priority is set
     g_proc_table[++procIdx].m_pid = PID_TIMER_IPROC;
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
     g_proc_table[procIdx].mpf_start_pc = &c_TIMER0_IRQ_Handler;

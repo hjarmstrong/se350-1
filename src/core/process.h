@@ -1,9 +1,9 @@
 #ifndef PROCESS_H
 #define PROCESS_H
 
-#include "../util/list.h"
 #include "../rtx.h"
 #include "../user/usr_proc.h"
+#include "../util/list.h"
 
 /* Process Structs */
 
@@ -26,7 +26,7 @@ typedef struct PCB {
 /* Global Variables */
 
 #define NUM_SYS_PROCS 3
-#define NUM_USR_PROCS 1
+#define NUM_USR_PROCS 2
 #define NUM_IPROCS 2
 #define NUM_PROCS (NUM_SYS_PROCS + NUM_TEST_PROCS + NUM_IPROCS + NUM_USR_PROCS)
 #define STACK_SIZE 0x100
