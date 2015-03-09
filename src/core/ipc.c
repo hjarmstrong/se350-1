@@ -10,7 +10,6 @@
 #include "../sys/timer.h"
 
 static Map metadata_map;
-static int is_init = 0;
 
 msg_metadata *get_message_metadata(void *message_envelope) {
     return (msg_metadata *) map_get(&metadata_map, message_envelope);
@@ -87,14 +86,20 @@ void *k_receive_message(int *sender_id) { // blocks
     __disable_irq();
     env = list_front(&gp_current_process->msg_queue);
     if (sender_id) {
-        metadata = get_message_metadata(env);
-        *sender_id = metadata->sender_pid;
+        if (map_is_in(&metadata_map, env)) {
+            metadata = get_message_metadata(env);
+            *sender_id = metadata->sender_pid;
+        } else {
+            *sender_id = -1;
+        }
     }
 
     list_shift(&gp_current_process->msg_queue);
     __enable_irq();
 
-    map_remove(&metadata_map, env); // map is used in delayed send. no-op if not in map
+    if (map_is_in(&metadata_map, env)) {
+        map_remove(&metadata_map, env); // map is used in delayed send. no-op if not in map
+    }
 
     return env;
 }

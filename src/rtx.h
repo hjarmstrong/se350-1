@@ -179,6 +179,7 @@ typedef struct msgbuf {
 
 #define DEFAULT 0
 #define KCD_REG 1
+#define CALLER_MANAGED_PRINT 2 // Like DEFAULT for CRT process, but user is responsible for memory management
 
 /*---- Section 2.4 -- Timing Services ---------------------------------------*/
 

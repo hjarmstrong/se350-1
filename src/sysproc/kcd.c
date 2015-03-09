@@ -16,6 +16,8 @@ void kcd_proc(void) {
     int i, j;
     int message_ack;
     int should_clr;
+    int msg_start = 0;
+    char *msg;
     
     map_clear(&recipient_map);
 
@@ -23,11 +25,14 @@ void kcd_proc(void) {
         buf = receive_message(&pid_from);
         if (buf->mtype == DEFAULT) {
             message_ack = 0;
-            // Assumption: start of message should always be the first character
-            // Assumption: all messages are less than 51 characters
-            if (buf->mtext[0] == '%') {
-                for (i = 1; !!buf->mtext[i]; ++i) {
-                    hash = hash_string(&buf->mtext[1], i - 1);
+            msg_start = 0;
+            while (buf->mtext[msg_start] != '%' && msg_start < get_output_buffer_size() && buf->mtext[msg_start] != '\0') {
+                ++msg_start;
+            }
+            msg = &buf->mtext[msg_start];
+            if (msg[0] == '%') {
+                for (i = 1; !!msg[i]; ++i) {
+                    hash = hash_string(&msg[1], i - 1);
                     if (map_is_in(&recipient_map, hash)) {
                         recipients = map_get(&recipient_map, hash);
                         message_ack = 1;

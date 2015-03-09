@@ -6,6 +6,7 @@
 #include "../core/scheduler.h"
 #include "../sys/uart.h"
 #include "../sys/uart_polling.h"
+#include "../sysproc/crt.h" // for crt_send_char
 #include "../util/string.h"
 
 static char *gp_input_buffer;
@@ -17,10 +18,12 @@ U8 out_index;
 
 static LPC_UART_TypeDef *pUart;
 static volatile int gp_ready = 1;
+static msgbuf *gp_echoBuffer = NULL;
 
 U32 uart_irq_init(U32 n_uart) {
     gp_input_buffer = request_memory_block();
     gp_output_buffer = request_memory_block();
+    gp_echoBuffer = request_memory_block();
 
     if (n_uart == 0) {
         /*
@@ -158,9 +161,7 @@ void c_UART0_IRQ_Handler(void) {
         /* read UART. Read RBR will clear the interrupt */
          input_character = pUart->RBR;
          if (input_character == '\r' || input_character == '\n' || get_input_buffer_size() == gp_buffer_index) {
-             // TODO: CALL KCD with the buffer
              // message envelope should contain the input buffer
-             // k_send_message(KCDID, void *message_envelope)
              msg_envelope = k_request_memory_block();
              msg_envelope->mtype = DEFAULT;
              strncpy(msg_envelope->mtext, gp_input_buffer, gp_buffer_index);
@@ -170,7 +171,17 @@ void c_UART0_IRQ_Handler(void) {
          } else {
              gp_input_buffer[gp_buffer_index] = input_character;
              gp_buffer_index++;
-         } 
+         }
+         // Echo -- caller keeps pointer
+         gp_echoBuffer->mtype = CALLER_MANAGED_PRINT;
+         gp_echoBuffer->mtext[0] = input_character;
+         if (input_character == '\r') {
+            gp_echoBuffer->mtext[1] = '\n';
+            gp_echoBuffer->mtext[2] = '\0';
+         } else {
+            gp_echoBuffer->mtext[1] = '\0';
+         }
+         k_send_message(PID_CRT, gp_echoBuffer);
          
     } else if (IIR_IntId & IIR_THRE) {
         /* THRE Interrupt, transmit holding register becomes empty */

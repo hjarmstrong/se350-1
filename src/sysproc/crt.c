@@ -15,7 +15,9 @@ void crt_proc(void) {
     while(1) {
         buf = receive_message(&pid_from);
         crt_write_output_buffer(buf->mtext);
-        release_memory_block(buf);
+        if (buf->mtype != CALLER_MANAGED_PRINT) {
+            release_memory_block(buf);
+        }
         release_processor();
     }
 }
