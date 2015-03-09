@@ -16,6 +16,8 @@ typedef struct Map {
     MapNode nodes[MAX_MAP_ELEMENTS];
 } Map;
 
+void map_clear(Map *map);
+
 /**
  * Invariant: key must be a key that was sent to reserve.
  */

@@ -3,48 +3,58 @@
 #include "../sys/timer.h"
 #include "../util/string.h"
 
-#define ONE_SECOND 100 // FIXME
+#define ONE_SECOND 1000
 
 static int enabled = 0;
 static int seconds = 0;
 static int mins = 0;
 static int hours = 0;
 
-static void backup(int n) {
-    static char buffer[80];
+#define CLOCK_BUFFER_SIZE 10
+
+static char display_buffer[CLOCK_BUFFER_SIZE];
+
+static void cls() {
     int i;
+    int n = strlen((const char *) display_buffer);
     if (!n) {
         return;
     }
-    for (i = 0; i < n && i < 79; ++i) {
-        buffer[i] = 0x08; // Backspace
+    for (i = 0; i < n && i < CLOCK_BUFFER_SIZE; ++i) {
+        display_buffer[i] = 0x08; // Backspace
     }
-    buffer[i] = 0;
-    crt_send_string(buffer);
+    display_buffer[i] = 0;
+    crt_send_string(display_buffer);
+    display_buffer[0] = 0;
 }
 
+
 static void display() {
-    static char buffer[8];
-    backup(strlen((const char*) buffer) + 2); // TODO: Why is there a SPACE?
+    cls();
 
-    strncpy((char *) buffer, "hh:mm:ss", 8);
-    buffer[0] = (hours/10) + '0';
-    buffer[1] = (hours%10) + '0';
-    buffer[3] = (mins/10) + '0';
-    buffer[4] = (mins%10) + '0';
-    buffer[6] = (seconds/10) + '0';
-    buffer[7] = (seconds%10) + '0';
+    strncpy(display_buffer, "hh:mm:ss", 8);
+    display_buffer[0] = (hours/10) + '0';
+    display_buffer[1] = (hours%10) + '0';
+    display_buffer[3] = (mins/10) + '0';
+    display_buffer[4] = (mins%10) + '0';
+    display_buffer[6] = (seconds/10) + '0';
+    display_buffer[7] = (seconds%10) + '0';
 
-    crt_send_string(buffer);
+    crt_send_string(display_buffer);
 }
 
 static void reset() {
     enabled = 1;
     seconds = mins = hours = 0;
+    display();
 }
 
 static void terminate() {
     enabled = 0;
+    
+    cls();
+    strncpy(display_buffer, "        ", 9);
+    crt_send_string(display_buffer);
 }
 
 static void tick() {

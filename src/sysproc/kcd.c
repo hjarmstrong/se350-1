@@ -15,6 +15,9 @@ void kcd_proc(void) {
     char *recipients;
     int i, j;
     int message_ack;
+    int should_clr;
+    
+    map_clear(&recipient_map);
 
     while(1) {
         buf = receive_message(&pid_from);
@@ -39,8 +42,14 @@ void kcd_proc(void) {
             }
         } else if (buf->mtype == KCD_REG) {
             hash = hash_string(buf->mtext, -1);
+            should_clr = !map_is_in(&recipient_map, hash);
             recipients = map_reserve(&recipient_map, hash);
-            for (i = 0; i < MAX_MAP_ELEMENTS && !!recipients[i]; ++i) {
+            if (should_clr) {
+                for (i = 0; i < MAX_MAP_VALUE_SIZE/sizeof(int) && !!recipients[i]; ++i) {
+                    recipients[i] = 0;
+                }
+            }
+            for (i = 0; i < MAX_MAP_VALUE_SIZE/sizeof(int) && !!recipients[i]; ++i) {
                 // pass
             }
             // In the case of a full mailbox, we discard the last unread message.

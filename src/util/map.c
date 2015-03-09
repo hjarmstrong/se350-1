@@ -1,6 +1,13 @@
 #include "map.h"
 #include "../rtx.h"
 
+void map_clear(Map *map) {
+    int i;
+    for (i = 0; i < MAX_MAP_ELEMENTS; ++i) {
+        map->nodes[i].key = 0;
+    }
+}
+
 void *map_get(Map *map, void *key) {
     int i;
     ASSERT(!!key)
