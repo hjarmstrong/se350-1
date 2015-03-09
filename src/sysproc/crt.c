@@ -14,7 +14,7 @@ void crt_proc(void) {
 
     while(1) {
         buf = receive_message(&pid_from);
-        k_crt_write_output_buffer(buf->mtext);
+        crt_write_output_buffer(buf->mtext);
         release_memory_block(buf);
         release_processor();
     }

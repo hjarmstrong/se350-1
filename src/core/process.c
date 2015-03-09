@@ -36,6 +36,7 @@ void k_process_init() {
     int procIdx = -1;
   
     // Initialize system processes
+	
     g_proc_table[++procIdx].m_pid = PID_NULL; 
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
     g_proc_table[procIdx].mpf_start_pc = &null_proc;

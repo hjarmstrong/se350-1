@@ -8,8 +8,8 @@
 #include "../sys/uart_polling.h"
 #include "../util/string.h"
 
-char gp_input_buffer[] = "WE RESERVE ENOUGH SPACE TO SEND 51 BYTES TO THE KCD";
-char gp_output_buffer[] = "THIS SHOULD BE REPLACED WITH A MESSAGE SENT FROM THE CRT PROCESS";
+static char *gp_input_buffer;
+static char *gp_output_buffer;
 
 U8 gp_buffer_index = 0;
 
@@ -19,6 +19,8 @@ static LPC_UART_TypeDef *pUart;
 static volatile int gp_ready = 1;
 
 U32 uart_irq_init(U32 n_uart) {
+    gp_input_buffer = request_memory_block();
+    gp_output_buffer = request_memory_block();
 
     if (n_uart == 0) {
         /*
@@ -194,12 +196,12 @@ void c_UART0_IRQ_Handler(void) {
 }
 
 int get_input_buffer_size(void) {
-    return sizeof(gp_input_buffer);
+    return BLOCK_SIZE;
 }
 int get_output_buffer_size(void) {
-    return sizeof(gp_output_buffer);
+    return BLOCK_SIZE;
 }
-void k_crt_write_output_buffer(const char* c) {
+void crt_write_output_buffer(const char* c) {
     strncpy(gp_output_buffer, c, get_output_buffer_size());
     pUart->IER = IER_THRE | IER_RLS | IER_RBR;
     gp_ready = 0;
