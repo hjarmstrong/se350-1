@@ -119,7 +119,7 @@ void proc1(void) {
     crt_send_string(" tests FAIL\n\r");
     
     crt_send_string("G007_test: END\n\r");
-    
+
     while (1) {
         release_processor();
     }
@@ -144,6 +144,10 @@ void proc2(void) {
     
     //Done testing
     set_process_priority(pid, LOWEST);
+
+    // Force this process to be BLOCKED_ON_RECEIVE
+    receive_message(NULL);
+
     while (1) {
         release_processor();
     }
