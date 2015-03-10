@@ -45,7 +45,7 @@ void print_memory() {
         uart1_put_string("print_memory: ");
         uart1_put_number((int)ptr);
         uart1_put_string("(");
-        uart1_put_string(is_free ? (const unsigned char*)"free" : (const unsigned char*)"res.");
+        uart1_put_string(is_free ? "free" : "res.");
         uart1_put_string(") -> ");
         uart1_put_number((int) ptr->next);
         uart1_put_string("\n\r");

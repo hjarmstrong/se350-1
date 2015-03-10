@@ -146,21 +146,99 @@ U32 uart_irq_init(U32 n_uart) {
     return 0;
 }
 
+#ifdef _DEBUG_HOTKEYS
+#define DEBUG_BUFFER_SIZE 40
+
+static char display_buffer[DEBUG_BUFFER_SIZE];
+
+static void cls() {
+    strncpy(display_buffer, "\r\n", DEBUG_BUFFER_SIZE);
+    uart1_put_string(display_buffer);
+}
+
+// Assumes pid is less than three digits
+static void copy_integer(int *idx, int pid) {
+	  if (pid >= 10) {
+    		display_buffer[(*idx)++] = (pid / 10) + '0';
+		}
+    display_buffer[(*idx)++] = (pid % 10) + '0';
+}
+
+static void debug_hotkeys(char key) {
+	  int i, j, idx;
+
+		if (!strncmp(&key, "!", 1)) {
+				strncpy(display_buffer, "Ready Queues", 12);
+				uart1_put_string(display_buffer);
+				cls();
+				for (i = 0; i < PNULL; ++i) {
+						strncpy(display_buffer, "> Queue X:", 10);
+						display_buffer[8] = i + '0';
+
+						idx = strlen(display_buffer);
+						for (j = 0; j < NUM_PROCS; ++j) {
+								if (g_queues[i][j] != NULL) {
+										display_buffer[idx++] = ' ';
+										copy_integer(&idx, g_queues[i][j]->pid);
+								}
+						}
+						uart1_put_string(display_buffer);
+						cls();
+				}
+		} else if (!strncmp(&key, "@", 1)) {
+				strncpy(display_buffer, "Blocked on Receive Queue", 25);
+				uart1_put_string(display_buffer);
+				cls();
+
+				strncpy(display_buffer, "> Queue:", 8);
+
+				idx = strlen(display_buffer);
+				for (i = 0; i < NUM_PROCS; ++i) {
+						if (g_queues[PRIORITY_BLOCKED_ON_RECEIVE][i] != NULL) {
+								display_buffer[idx++] = ' ';
+								copy_integer(&idx, g_queues[PRIORITY_BLOCKED_ON_RECEIVE][i]->pid);
+						}
+				}
+				uart1_put_string(display_buffer);
+				cls();
+		} else if (!strncmp(&key, "#", 1)) {
+				strncpy(display_buffer, "Blocked on Memory Queue", 24);
+				uart1_put_string(display_buffer);
+				cls();
+
+				strncpy(display_buffer, "> Queue:", 8);
+
+				idx = strlen(display_buffer);
+				for (i = 0; i < NUM_PROCS; ++i) {
+						if (g_queues[PRIORITY_BLOCKED_ON_MEMORY][i] != NULL) {
+								display_buffer[idx++] = ' ';
+								copy_integer(&idx, g_queues[PRIORITY_BLOCKED_ON_MEMORY][i]->pid);
+						}
+				}
+				uart1_put_string(display_buffer);
+				cls();
+		}
+}
+#endif // _DEBUG_HOTKEYS
 
 void c_UART0_IRQ_Handler(void) { 
     uint8_t IIR_IntId;        // Interrupt ID from IIR 
     char input_character, output_character;    
     LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef *)LPC_UART0;
-    msgbuf* msg_envelope;
-    
+    msgbuf *msg_envelope;
+
     /* Reading IIR automatically acknowledges the interrupt */
     IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR 
-    
+
     if (IIR_IntId & IIR_RDA) { 
         
         /* read UART. Read RBR will clear the interrupt */
          input_character = pUart->RBR;
-        
+			   
+			   #ifdef _DEBUG_HOTKEYS
+		     debug_hotkeys(input_character);
+			   #endif // _DEBUG_HOTKEYS
+
          // Echo -- caller keeps pointer
          gp_echoBuffer->mtype = CALLER_MANAGED_PRINT;
          gp_echoBuffer->mtext[0] = input_character;
@@ -214,6 +292,7 @@ int get_input_buffer_size(void) {
 }
 int get_output_buffer_size(void) {
     return BLOCK_SIZE;
+    //return BLOCK_SIZE - sizeof(int) - 1;
 }
 void crt_write_output_buffer(const char* c) {
     strncpy(gp_output_buffer, c, get_output_buffer_size());

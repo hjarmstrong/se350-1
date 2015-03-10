@@ -116,7 +116,7 @@ int uart_put_char(int n_uart, unsigned char c)
 /**
  * @brief write a string to UART
  */
-int uart_put_string(int n_uart, const unsigned char *s)
+int uart_put_string(int n_uart, const char *s)
 {
   if (n_uart >1 ) return -1;    /* only uart0, 1 are supported for now      */
   while (*s !=0) {              /* loop through each char in the string */

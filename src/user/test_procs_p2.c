@@ -120,6 +120,16 @@ void proc1(void) {
     
     crt_send_string("G007_test: END\n\r");
 
+#ifdef _DEBUG_HOTKEYS
+    // Force this process to be BLOCKED_ON_MEMORY
+		i = 0;
+    //while (request_memory_block()) {
+		//	  if (i++ == 0x80) {
+		//			  break;
+		//		}
+		//}
+#endif // _DEBUG_HOTKEYS
+
     while (1) {
         release_processor();
     }
@@ -145,8 +155,10 @@ void proc2(void) {
     //Done testing
     set_process_priority(pid, LOWEST);
 
+#ifdef _DEBUG_HOTKEYS
     // Force this process to be BLOCKED_ON_RECEIVE
     receive_message(NULL);
+#endif // _DEBUG_HOTKEYS
 
     while (1) {
         release_processor();
@@ -191,6 +203,7 @@ void proc3(void) {
 
     //Done testing
     set_process_priority(pid, LOWEST);
+
     while (1) {
         release_processor();
     }

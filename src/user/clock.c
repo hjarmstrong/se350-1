@@ -17,7 +17,7 @@ static int hours = 0;
 static char display_buffer[CLOCK_BUFFER_SIZE];
 
 static void cls() {
-    strncpy(display_buffer, "\r\n", 3);
+    strncpy(display_buffer, "\r\n", CLOCK_BUFFER_SIZE);
     crt_send_string(display_buffer);
 }
 
@@ -45,8 +45,6 @@ static void terminate() {
     enabled = 0;
     
     cls();
-    strncpy(display_buffer, "        ", 9);
-    crt_send_string(display_buffer);
 }
 
 static void tick() {
@@ -75,14 +73,14 @@ void clock_proc() {
     strncpy(kcd_reg->mtext, "W", 2);
     send_message(PID_KCD, kcd_reg);
 
-    delayed_send(PID_A, clock_msg, ONE_SECOND);
+    delayed_send(PID_CLOCK, clock_msg, ONE_SECOND);
     while (1) {
         received = receive_message(&recipient);
         if (received == clock_msg) {
             if (enabled) {
                 tick();
             }
-            delayed_send(PID_A, clock_msg, ONE_SECOND);
+            delayed_send(PID_CLOCK, clock_msg, ONE_SECOND);
         } else {
             if (!strncmp(received->mtext, "%WR", 3)) {
                 reset();
@@ -99,8 +97,9 @@ void clock_proc() {
                     mins += (received->mtext[8] - '0');
                     seconds = (received->mtext[10] - '0')*10;
                     seconds += (received->mtext[11] - '0');
+									
+									  enabled = 1;
                 }
-                enabled = 1;
             }
         }
     }

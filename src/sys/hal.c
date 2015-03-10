@@ -18,7 +18,6 @@ __asm void SVC_Handler (void)
 {
   PRESERVE8            ; 8 bytes alignement of the stack
   MRS  R0, MSP         ; Read MSP
-
   LDR  R1, [R0, #24]   ; Read Saved PC from SP
                        ; Loads R1 from a word 24 bytes above the address in R0
                        ; Note that R0 now contains the the SP value after the

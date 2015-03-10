@@ -56,14 +56,9 @@ void k_process_init() {
     ASSERT(procIdx + 1 == NUM_SYS_PROCS) // Check NUM_SYS_PROCS
 
     // Initialize user processes
-    g_proc_table[++procIdx].m_pid = PID_A;
+    g_proc_table[++procIdx].m_pid = PID_CLOCK;
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
     g_proc_table[procIdx].mpf_start_pc = &clock_proc;
-    g_proc_table[procIdx].m_priority = MEDIUM;
-		
-		g_proc_table[++procIdx].m_pid = PID_B;
-    g_proc_table[procIdx].m_stack_size = STACK_SIZE;
-    g_proc_table[procIdx].mpf_start_pc = &debug_proc;
     g_proc_table[procIdx].m_priority = MEDIUM;
 
     ASSERT(procIdx + 1 == NUM_SYS_PROCS + NUM_USR_PROCS) // Check NUM_USR_PROCS
