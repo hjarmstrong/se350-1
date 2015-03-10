@@ -102,11 +102,15 @@ void k_process_init() {
             *(--sp) = 0x0;
         }
         gp_pcbs[i]->sp = sp;
-        gp_pcbs[i]->msg_queue = list_new(); 
     }
 
     // This variable must be set before we can use memory management functionality
     heap_high_address = gp_stack;
+
+		// Initialize all process message queues (requires memory management)
+		for (i = 0; i < NUM_PROCS; ++i) {
+        gp_pcbs[i]->msg_queue = list_new();
+		}
 }
 
 /**

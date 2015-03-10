@@ -42,8 +42,8 @@ ListNode *list_node_new() {
  */
 List list_new() {
     List l;
-    l.first = NULL;
-    l.last = NULL;
+    l.first = list_node_new();
+    l.last = l.first;
     return l;
 }
 
@@ -51,11 +51,6 @@ List list_new() {
  * Adds a node to the end of a linked list.
  */
 void list_push(List *list, void *data) {
-    if (list_empty(list)) {
-        list->first = list_node_new();
-        list->last = list->first;
-    }
-
     if (list->last->count == LIST_BUCKET_SIZE) {
         ListNode *new_node = list_node_new();
 
@@ -76,14 +71,11 @@ void list_pop(List *list) {
 
     --last->count;
     if (!last->count) {
-        if (last == list->first) {
-            list->last = NULL;
-            list->first = NULL;
-        } else {
+        if (last != list->first) {
             last->prev->next = NULL;
             list->last = last->prev;
+					  k_release_memory_block(last);
         }
-        k_release_memory_block(last);
     }
 }
 
@@ -109,15 +101,12 @@ void list_shift(List *list) {
     }
 
     if (!first->count) {
-        if (first == list->last) {
-            list->first = NULL;
-            list->last = NULL;
-        } else {
+        if (first != list->last) {
             // there must exist at least two elements, thus first->next is not NULL
             first->next->prev = NULL;
             list->first = first->next;
+					  k_release_memory_block(first);
         }
-        k_release_memory_block(first);
     }
 }
 
@@ -133,7 +122,7 @@ void *list_front(List *list) {
  * Returns 1 if list is empty, 0 otherwise.
  */
 int list_empty(List *list) {
-    return !list->last;
+    return list->last->count == 0;
 }
 
 void print_list(List *list) {
