@@ -15,7 +15,6 @@
 #include "../sysproc/kcd.h"
 #include "../sysproc/null.h"
 #include "../user/clock.h"
-#include "../user/debug.h"
 
 #define INITIAL_xPSR 0x01000000
 

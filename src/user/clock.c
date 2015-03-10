@@ -57,6 +57,9 @@ static void tick() {
         ++hours;
         mins = 0;
     }
+    if (hours/24) {
+        hours = 0;
+    }
     display();
 }
 
@@ -82,23 +85,27 @@ void clock_proc() {
             }
             delayed_send(PID_CLOCK, clock_msg, ONE_SECOND);
         } else {
-            if (!strncmp(received->mtext, "%WR", 3)) {
+            if (!strncmp(received->mtext, "WR", 2)) {
                 reset();
-            } else if (!strncmp(received->mtext, "%WT", 3)) {
+            } else if (!strncmp(received->mtext, "WT", 2)) {
                 terminate();
-            } else if (!strncmp(received->mtext, "%WS", 3)) {
+            } else if (!strncmp(received->mtext, "WS", 2)) {
                 len = strlen(received->mtext);
-                if (len != 12) {
+                enabled = 0;
+                if (len != 11) {
                     crt_send_string("%WS: invalid format.\r\n");
                 } else {
-                    hours = (received->mtext[4] - '0')*10;
-                    hours += (received->mtext[5] - '0');
-                    mins = (received->mtext[7] - '0')*10;
-                    mins += (received->mtext[8] - '0');
-                    seconds = (received->mtext[10] - '0')*10;
-                    seconds += (received->mtext[11] - '0');
-									
-									  enabled = 1;
+                    hours = (received->mtext[3] - '0')*10;
+                    hours += (received->mtext[4] - '0');
+                    mins = (received->mtext[6] - '0')*10;
+                    mins += (received->mtext[7] - '0');
+                    seconds = (received->mtext[9] - '0')*10;
+                    seconds += (received->mtext[10] - '0');
+                    if (hours > 24 || mins > 60 || seconds > 60) {
+                        crt_send_string("%WS: invalid format.\r\n");
+                    } else {
+                        enabled = 1;
+                    }
                 }
             }
         }
