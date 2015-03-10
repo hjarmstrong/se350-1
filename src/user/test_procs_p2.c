@@ -122,12 +122,9 @@ void proc1(void) {
 
 #ifdef _DEBUG_HOTKEYS
     // Force this process to be BLOCKED_ON_MEMORY
-		i = 0;
-    //while (request_memory_block()) {
-		//	  if (i++ == 0x80) {
-		//			  break;
-		//		}
-		//}
+      while (request_memory_block()) {
+          //YOLO
+				}
 #endif // _DEBUG_HOTKEYS
 
     while (1) {
