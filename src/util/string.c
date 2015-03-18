@@ -54,3 +54,29 @@ void *hash_string(const char* str, int len) {
 
     return (void *) hash;
 }
+
+/**
+ * Read a decimal number starting at (*str_ptr)[0], and advance str_ptr to just
+ * after the number. If no number is found, returns INVALID_NUMBER without advancing
+ * the string.
+ */
+int read_num(const char **str_ptr) {
+    int num = 0;
+    int read_num = 0;
+    while ((*str_ptr)[0] >= '0' && (*str_ptr)[0] <= '9') {
+        read_num = 1;
+        num *= 10;
+        num += (*str_ptr)[0] - '0';
+        ++(*str_ptr);
+    }
+    return read_num ? num : INVALID_NUMBER;
+}
+
+/**
+ * Advance str_ptr to just after any tabs or spaces.
+ */
+void read_whitespace(const char **str_ptr) {
+    while ((*str_ptr)[0] == ' ' || (*str_ptr)[0] == '\t') {
+        ++(*str_ptr);
+    }
+}
