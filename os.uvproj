@@ -846,6 +846,11 @@
                 </FileArmAds>
               </FileOption>
             </File>
+            <File>
+              <FileName>setpri.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\user\setpri.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
