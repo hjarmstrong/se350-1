@@ -180,6 +180,8 @@ typedef struct msgbuf {
 #define DEFAULT 0
 #define KCD_REG 1
 #define CALLER_MANAGED_PRINT 2 // Like DEFAULT for CRT process, but user is responsible for memory management
+#define COUNT_REPORT 3 //Used in stress tests to send a count from A to C
+#define WAKEUP10 4 //Used in stress tests for delayed messages sent by C to itself
 
 /*---- Section 2.4 -- Timing Services ---------------------------------------*/
 
