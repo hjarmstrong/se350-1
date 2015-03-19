@@ -9,11 +9,13 @@
 
 #define TEST_SUCCESS 's'
 #define TEST_FAILURE 'f'
+#define TEST_INTERMEDIATE 'i'
 
 #define DELAY 100
 
 
 PROC_INIT g_test_procs[NUM_TEST_PROCS];
+int test_runner_pid = 1;
 
 
 void set_test_procs() {
@@ -36,7 +38,6 @@ void set_test_procs() {
 void proc1(void) {
     int failures = 0;
     int passes = 0;
-    int pid = 1;
     int sender;
     int i;
 
@@ -52,7 +53,7 @@ void proc1(void) {
     msg->mtype = DEFAULT;
     msg->mtext[0] = TEST_SUCCESS;
 
-    send_message(pid, msg);
+    send_message(test_runner_pid, msg);
     // ----------------------------------------
 
     // ----------------------------------------
@@ -62,7 +63,7 @@ void proc1(void) {
     for (i = 1; i <= NUM_TESTS; ++i) {
         msg = receive_message(&sender);
         while (sender != i) {
-            send_message(pid, msg);
+            send_message(test_runner_pid, msg);
             release_processor();
             msg = receive_message(&sender);
         }
@@ -101,8 +102,7 @@ void proc1(void) {
 }
 
 void proc2(void) {
-    int pid = 1;
-
+    int pid = 2;
     msgbuf *msg;
 
     // ----------------------------------------
@@ -111,7 +111,7 @@ void proc2(void) {
     msg->mtype = DEFAULT;
     msg->mtext[0] = TEST_SUCCESS;
 
-    delayed_send(pid, msg, DELAY);
+    delayed_send(test_runner_pid, msg, DELAY);
     // ----------------------------------------
 
     // Done
@@ -145,8 +145,7 @@ void proc3(void) {
         msg->mtext[0] = TEST_FAILURE;
     }
 
-    pid = 1;
-    send_message(pid, msg);
+    send_message(test_runner_pid, msg);
     // ------------------------------------
 
     // Done
@@ -172,14 +171,13 @@ void proc4(void) {
     msg = request_memory_block();
     msg->mtype = DEFAULT;
     msg->mtext[0] = TEST_FAILURE;
-    send_message(pid, normal_msg);
+    send_message(pid, msg);
 
     msg = receive_message(&pid);
     release_memory_block(msg);
 
     msg = receive_message(&pid);
-    pid = 1;
-    send_message(pid, msg);
+    send_message(test_runner_pid, msg);
     // -----------------------------------------
 
     // Done
@@ -191,27 +189,28 @@ void proc4(void) {
 }
 
 void proc5(void) {
-    int pid = 6;
+    int pid = 5;
+    int destination_pid = 6;
     int sender;
 
     msgbuf *msg;
 
     // ----------------------------------------
     // Test 5: verify bouncing messages between
-    // processes does not corrupt them
+    // processes and ensure correct message is
+    // received
     // see proc6
     msg = request_memory_block();
     msg->mtype = DEFAULT;
     msg->mtext[0] = TEST_SUCCESS;
 
-    send_message(pid, msg);
+    send_message(destination_pid, msg);
 
     msg = receive_message(&sender);
     send_message(pid, msg);
 
     msg = receive_message(&sender);
-    pid = 1;
-    send_message(pid, msg);
+    send_message(test_runner_pid, msg);
     // ----------------------------------------
 
     // Done
@@ -223,26 +222,33 @@ void proc5(void) {
 }
 
 void proc6(void) {
-    int pid = 5;
+    int pid = 6;
+    int destination_pid = 5;
     int sender;
+
+    msgbuf *msg;
 
     // ----------------------------------------
     // Test 5: verify bouncing messages between
-    // processes does not corrupt them
+    // processes and ensure correct message is
+    // received
     // see proc5
     msg = request_memory_block();
     msg->mtype = DEFAULT;
-    msg->mtext[0] = TEST_FAILURE;
+    msg->mtext[0] = TEST_INTERMEDIATE;
 
-    send_message(pid, msg);
-
-    msg = receive_message(&sender);
-    send_message(pid, msg);
+    send_message(destination_pid, msg);
 
     msg = receive_message(&sender);
-    msg->mtext[0] = (msg->mtext[0] == TEST_SUCCESS ? TEST_FAILURE : TEST_SUCCESS);
-    pid = 1;
-    send_message(pid, msg);
+    send_message(destination_pid, msg);
+
+    msg = receive_message(&sender);
+    if (msg->mtext[0] == TEST_INTERMEDIATE) {
+	    msg->mtext[0] = TEST_SUCCESS;
+	} else {
+	    msg->mtext[0] = TEST_FAILURE;
+    }
+    send_message(test_runner_pid, msg);
     // ----------------------------------------
 
     // Done
