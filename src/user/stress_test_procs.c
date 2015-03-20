@@ -49,7 +49,7 @@ void proc_c(void){
     msgbuf *p = request_memory_block();
     int p_data_int;
     msgbuf *wait;
-    List queue = list_new();
+    List queue = list_new(IS_USERSPACE);
     int sender;
     while(1){
         if (list_empty(&queue)){

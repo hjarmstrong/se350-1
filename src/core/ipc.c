@@ -57,6 +57,11 @@ int k_send_message(int destination_proc_id, void *message_envelope) {
 int k_delayed_send(int destination_proc_id, void *message_envelope, int delay) {
     msg_metadata *metadata = reserve_message_metadata(message_envelope);
 
+    if (message_envelope == NULL) {
+        uart1_put_string("k_send_message is NULL. Bad!\n");
+        return RTX_ERR;
+    }
+    
     __disable_irq();
 
     metadata->sender_pid = gp_current_process->pid;
@@ -67,6 +72,7 @@ int k_delayed_send(int destination_proc_id, void *message_envelope, int delay) {
         // Overflow is... unlikely.
         // If needed, we discard old messages.
         g_delayed_messages_count = 0;
+        ASSERT(0)
     }
     g_delayed_messages[g_delayed_messages_count++] = message_envelope;
 

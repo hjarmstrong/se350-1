@@ -34,7 +34,7 @@ void kcd_proc(void) {
                     strncpy(buf->mtext, buf->mtext + msg_start, get_output_buffer_size());
                 }
                 for (i = 0; !!buf->mtext[i]; ++i) {
-                    hash = hash_string(&buf->mtext[0], i);
+                    hash = hash_string(&buf->mtext[0], i + 1);
                     if (map_is_in(&recipient_map, hash)) {
                         recipients = map_get(&recipient_map, hash);
                         message_ack = 1;

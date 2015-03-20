@@ -41,7 +41,7 @@ void *map_reserve(Map *map, void *key) {
             first_free = i;
         }
     }
-    ASSERT(first_free != -1) // We're full. Increase MAX_MAP_VALUE_SIZE
+    ASSERT(first_free != -1) // We're full. Increase MAX_MAP_ELEMENTS
     for (i = 0; i < MAX_MAP_VALUE_SIZE; ++i) {
         map->nodes[first_free].value[i] = 0;
     }

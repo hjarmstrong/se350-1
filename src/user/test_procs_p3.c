@@ -40,6 +40,7 @@ void proc1(void) {
     int passes = 0;
     int sender;
     int i;
+    char test_results[6];
 
     int char_offset = 48;
 
@@ -62,22 +63,21 @@ void proc1(void) {
     // contents
     for (i = 1; i <= NUM_TESTS; ++i) {
         msg = receive_message(&sender);
-        while (sender != i) {
-            send_message(test_runner_pid, msg);
-            release_processor();
-            msg = receive_message(&sender);
-        }
+        test_results[sender - 1] = msg->mtext[0];
 
+			  release_memory_block(msg);
+    }
+
+		for (i = 1; i <= NUM_TESTS; ++i) {
         crt_send_string("G007_test: test ");
         crt_send_char(i + char_offset);
-        if (msg->mtext[0] == TEST_SUCCESS) {
+        if (test_results[i - 1] == TEST_SUCCESS) {
             crt_send_string(" OK\n\r");
             ++passes;
         } else {
             crt_send_string(" FAIL\n\r");
             ++failures;
         }
-        release_memory_block(msg);
     }
     // ----------------------------------------
 
@@ -96,6 +96,8 @@ void proc1(void) {
     crt_send_string("G007_test: END\n\r");
 
     // Done
+		set_process_priority(test_runner_pid, LOWEST);
+
     while (1) {
         release_processor();
     }
@@ -207,7 +209,7 @@ void proc5(void) {
     send_message(destination_pid, msg);
 
     msg = receive_message(&sender);
-    send_message(pid, msg);
+    send_message(destination_pid, msg);
 
     msg = receive_message(&sender);
     send_message(test_runner_pid, msg);

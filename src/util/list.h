@@ -7,6 +7,9 @@
 
 #include "../rtx.h"
 
+#define IS_KERNEL 1
+#define IS_USERSPACE 0
+
 /*---- List API Methods -----------------------------------------------------*/
 
 struct ListNode;
@@ -14,9 +17,10 @@ struct ListNode;
 typedef struct List {
     struct ListNode *first;
     struct ListNode *last;
+    int is_kernel;
 } List;
 
-List list_new(void);
+List list_new(int is_kernel);
 
 void list_push(List *, void *data);
 void list_pop(List *);

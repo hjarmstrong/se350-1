@@ -16,6 +16,7 @@
 #include "../sysproc/null.h"
 #include "../user/clock.h"
 #include "../user/setpri.h"
+#include "../user/stress_test_procs.h"
 
 #define INITIAL_xPSR 0x01000000
 
@@ -64,7 +65,22 @@ void k_process_init() {
     g_proc_table[++procIdx].m_pid = PID_SET_PRIO;
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
     g_proc_table[procIdx].mpf_start_pc = &setpri_proc;
-    g_proc_table[procIdx].m_priority = MEDIUM;
+    g_proc_table[procIdx].m_priority = HIGH;
+		
+		g_proc_table[++procIdx].m_pid = PID_A;
+    g_proc_table[procIdx].m_stack_size = STACK_SIZE;
+    g_proc_table[procIdx].mpf_start_pc = &proc_a;
+    g_proc_table[procIdx].m_priority = HIGH;
+		
+		g_proc_table[++procIdx].m_pid = PID_B;
+    g_proc_table[procIdx].m_stack_size = STACK_SIZE;
+    g_proc_table[procIdx].mpf_start_pc = &proc_b;
+    g_proc_table[procIdx].m_priority = HIGH;
+		
+		g_proc_table[++procIdx].m_pid = PID_C;
+    g_proc_table[procIdx].m_stack_size = STACK_SIZE;
+    g_proc_table[procIdx].mpf_start_pc = &proc_c;
+    g_proc_table[procIdx].m_priority = HIGH;
 
     ASSERT(procIdx + 1 == NUM_SYS_PROCS + NUM_USR_PROCS) // Check NUM_USR_PROCS
 
@@ -112,10 +128,10 @@ void k_process_init() {
     // This variable must be set before we can use memory management functionality
     heap_high_address = gp_stack;
 
-		// Initialize all process message queues (requires memory management)
-		for (i = 0; i < NUM_PROCS; ++i) {
-        gp_pcbs[i]->msg_queue = list_new();
-		}
+    // Initialize all process message queues (requires memory management)
+    for (i = 0; i < NUM_PROCS; ++i) {
+        gp_pcbs[i]->msg_queue = list_new(IS_KERNEL);
+    }
 }
 
 /**

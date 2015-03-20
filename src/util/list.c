@@ -27,8 +27,8 @@ typedef struct ListNode {
  *
  * The caller must free this node by calling k_release_memory_block(...).
  */
-ListNode *list_node_new() {
-    ListNode *node = (ListNode *) k_request_memory_block();
+ListNode *list_node_new(List *l) {
+    ListNode *node = (ListNode *) l->is_kernel ? k_request_memory_block() : request_memory_block();
 
     node->next = NULL;
     node->prev = NULL;
@@ -40,10 +40,11 @@ ListNode *list_node_new() {
 /**
  * Creates a new stack-based linked list with 0 elements.
  */
-List list_new() {
+List list_new(int is_kernel) {
     List l;
-    l.first = list_node_new();
+    l.first = list_node_new(&l);
     l.last = l.first;
+    l.is_kernel = is_kernel;
     return l;
 }
 
@@ -52,7 +53,7 @@ List list_new() {
  */
 void list_push(List *list, void *data) {
     if (list->last->count == LIST_BUCKET_SIZE) {
-        ListNode *new_node = list_node_new();
+        ListNode *new_node = list_node_new(list);
 
         list->last->next = new_node;
         new_node->prev = list->last;
@@ -74,7 +75,11 @@ void list_pop(List *list) {
         if (last != list->first) {
             last->prev->next = NULL;
             list->last = last->prev;
-					  k_release_memory_block(last);
+            if (list->is_kernel) {
+                k_release_memory_block(last);
+			} else {
+                release_memory_block(last);
+            }
         }
     }
 }
@@ -105,7 +110,11 @@ void list_shift(List *list) {
             // there must exist at least two elements, thus first->next is not NULL
             first->next->prev = NULL;
             list->first = first->next;
-					  k_release_memory_block(first);
+			if (list->is_kernel) {
+                k_release_memory_block(first);
+            } else {
+                release_memory_block(first);
+            }
         }
     }
 }

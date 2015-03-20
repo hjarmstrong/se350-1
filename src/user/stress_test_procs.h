@@ -3,8 +3,8 @@
 
 #include "rtx.h"
 
-void procA(void);
-void procB(void);
-void procC(void);
+void proc_a(void);
+void proc_b(void);
+void proc_c(void);
 
 #endif //STRESS_TEST_PROCESS_H
