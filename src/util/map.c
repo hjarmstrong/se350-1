@@ -39,6 +39,7 @@ void *map_reserve(Map *map, void *key) {
             return map->nodes[i].value;
         } else if (first_free == -1 && !map->nodes[i].key) {
             first_free = i;
+            break;
         }
     }
     ASSERT(first_free != -1) // We're full. Increase MAX_MAP_ELEMENTS

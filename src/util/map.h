@@ -4,8 +4,8 @@
 
 #ifndef MAP_H
 #define MAP_H
-#define MAX_MAP_ELEMENTS 80
-#define MAX_MAP_VALUE_SIZE 32
+#define MAX_MAP_ELEMENTS 50
+#define MAX_MAP_VALUE_SIZE 24
 
 typedef struct MapNode {
     void *key;

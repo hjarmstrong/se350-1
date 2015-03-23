@@ -45,7 +45,7 @@ void k_process_init() {
     g_proc_table[procIdx].m_priority = PNULL;
 
     g_proc_table[++procIdx].m_pid = PID_KCD; 
-    g_proc_table[procIdx].m_stack_size = STACK_SIZE;
+    g_proc_table[procIdx].m_stack_size = 0x2000;
     g_proc_table[procIdx].mpf_start_pc = &kcd_proc;
     g_proc_table[procIdx].m_priority = HIGH;
 
