@@ -9,7 +9,7 @@
 #include "../sys/uart_polling.h"
 #include "../sys/timer.h"
 
-static Map metadata_map;
+Map metadata_map;
 
 msg_metadata *get_message_metadata(void *message_envelope) {
     return (msg_metadata *) map_get(&metadata_map, message_envelope);

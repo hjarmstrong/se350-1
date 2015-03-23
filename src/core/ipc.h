@@ -2,6 +2,9 @@
 #define IPC_H
 
 #include "../rtx.h"
+#include "../util/map.h"
+
+extern Map metadata_map;
 
 typedef struct msg_metadata {
     int sender_pid;

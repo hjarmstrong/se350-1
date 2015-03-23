@@ -129,7 +129,7 @@ void *k_request_memory_block(void) {
         is_init = 1;
     }
 
-    print_memory();
+    // print_memory();
 
     while (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
         gp_current_process->state = BLOCKED_ON_MEMORY;

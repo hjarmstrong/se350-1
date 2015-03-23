@@ -5,6 +5,7 @@
 #include "scheduler.h"
 
 #include "../sys/uart_polling.h"
+#include "./ipc.h"
 
 PCB *g_queues[NUM_QUEUES][NUM_PROCS];
 
@@ -23,6 +24,9 @@ void k_scheduler_init() {
     for (i = 0; i < NUM_PROCS; ++i) {
         k_enqueue_process(g_proc_table[i].m_pid);
     }
+
+    map_init(&metadata_map);
+    metadata_map.is_kernel = 1;
 }
 
 int k_dequeue_process(int process_id) {

@@ -2,10 +2,13 @@
  * map.c -- Simple fixed-length map used by the RTX
  */
 
+#include "../rtx.h"
+
 #ifndef MAP_H
 #define MAP_H
-#define MAX_MAP_ELEMENTS 50
 #define MAX_MAP_VALUE_SIZE 24
+#define MAX_MAP_ELEMENTS_PER_BLOCK (BLOCK_SIZE/(MAX_MAP_VALUE_SIZE/0x8))
+#define MAX_MAP_BLOCKS 10
 
 typedef struct MapNode {
     void *key;
@@ -13,10 +16,11 @@ typedef struct MapNode {
 } MapNode;
 
 typedef struct Map {
-    MapNode nodes[MAX_MAP_ELEMENTS];
+    MapNode* blocks[MAX_MAP_BLOCKS];
+    int is_kernel;
 } Map;
 
-void map_clear(Map *map);
+void map_init(Map *map);
 
 /**
  * Invariant: key must be a key that was sent to reserve.
