@@ -46,6 +46,9 @@ void *map_reserve(Map *map, void *key) {
     ASSERT(!!key)
     for (i = 0; i < MAX_MAP_BLOCKS; ++i) {
         if (!map->blocks[i]) {
+            if (first_free_i != -1) {
+                break;
+            }
             map->blocks[i] = map->is_kernel ? k_request_memory_block() : request_memory_block();
             for (j = 0; j < MAX_MAP_ELEMENTS_PER_BLOCK; ++j) {
                 map->blocks[i][j].key = 0;
@@ -58,7 +61,6 @@ void *map_reserve(Map *map, void *key) {
             } else if (first_free_i == -1 && !map->blocks[i][j].key) {
                 first_free_i = i;
                 first_free_j = j;
-                break;
             }
         }
     }

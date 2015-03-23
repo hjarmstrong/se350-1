@@ -6,14 +6,15 @@
 
 #ifndef MAP_H
 #define MAP_H
-#define MAX_MAP_VALUE_SIZE 24
-#define MAX_MAP_ELEMENTS_PER_BLOCK (BLOCK_SIZE/(MAX_MAP_VALUE_SIZE/0x8))
+#define MAX_MAP_VALUE_SIZE 3
 #define MAX_MAP_BLOCKS 10
 
 typedef struct MapNode {
     void *key;
-    char *value[MAX_MAP_VALUE_SIZE];
+    int value[MAX_MAP_VALUE_SIZE];
 } MapNode;
+
+#define MAX_MAP_ELEMENTS_PER_BLOCK (BLOCK_SIZE/sizeof(MapNode))
 
 typedef struct Map {
     MapNode* blocks[MAX_MAP_BLOCKS];

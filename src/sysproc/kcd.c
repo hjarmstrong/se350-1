@@ -38,7 +38,7 @@ void kcd_proc(void) {
                     if (map_is_in(&recipient_map, hash)) {
                         recipients = map_get(&recipient_map, hash);
                         message_ack = 1;
-                        for (j = 0; !!recipients[j] && j < MAX_MAP_VALUE_SIZE/sizeof(void *); ++j) {
+                        for (j = 0; !!recipients[j] && j < MAX_MAP_VALUE_SIZE; ++j) {
                             send_message(recipients[j], buf);
                         }
                     }
