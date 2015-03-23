@@ -67,17 +67,17 @@ void k_process_init() {
     g_proc_table[procIdx].mpf_start_pc = &setpri_proc;
     g_proc_table[procIdx].m_priority = HIGH;
 		
-		g_proc_table[++procIdx].m_pid = PID_A;
+    g_proc_table[++procIdx].m_pid = PID_A;
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
     g_proc_table[procIdx].mpf_start_pc = &proc_a;
     g_proc_table[procIdx].m_priority = HIGH;
 		
-		g_proc_table[++procIdx].m_pid = PID_B;
+    g_proc_table[++procIdx].m_pid = PID_B;
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
     g_proc_table[procIdx].mpf_start_pc = &proc_b;
     g_proc_table[procIdx].m_priority = HIGH;
 		
-		g_proc_table[++procIdx].m_pid = PID_C;
+    g_proc_table[++procIdx].m_pid = PID_C;
     g_proc_table[procIdx].m_stack_size = STACK_SIZE;
     g_proc_table[procIdx].mpf_start_pc = &proc_c;
     g_proc_table[procIdx].m_priority = HIGH;

@@ -288,10 +288,10 @@ void c_UART0_IRQ_Handler(void) {
 }
 
 int get_input_buffer_size(void) {
-    return BLOCK_SIZE;
+    return BLOCK_SIZE - sizeof(msgbuf);
 }
 int get_output_buffer_size(void) {
-    return BLOCK_SIZE - sizeof(int) - 1;
+    return BLOCK_SIZE - sizeof(msgbuf);
 }
 void crt_write_output_buffer(const char* c) {
     strncpy(gp_output_buffer, c, get_output_buffer_size());

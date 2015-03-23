@@ -24,15 +24,15 @@ void print_memory() {
     int i;
 
     uart1_put_string("print_memory: PCB: ");
-    uart1_put_number((int) &Image$$RW_IRAM1$$ZI$$Limit);
+    uart1_put_hex((int) &Image$$RW_IRAM1$$ZI$$Limit);
     uart1_put_string(" -> ");
-    uart1_put_number((int) heap_low_address);
+    uart1_put_hex((int) heap_low_address);
     uart1_put_string("\n\r");
 
     uart1_put_string("print_memory: Stacks: ");
-    uart1_put_number((int) gp_stack);
+    uart1_put_hex((int) gp_stack);
     uart1_put_string(" -> ");
-    uart1_put_number(0x10008000);
+    uart1_put_hex(0x10008000);
     uart1_put_string("\n\r");
 
     if (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
@@ -43,19 +43,19 @@ void print_memory() {
 
     for (ptr = root; ptr != heap_low_address; ptr = ptr->next, is_free = !is_free) {
         uart1_put_string("print_memory: ");
-        uart1_put_number((int)ptr);
+        uart1_put_hex((int)ptr);
         uart1_put_string("(");
         uart1_put_string(is_free ? "free" : "res.");
         uart1_put_string(") -> ");
-        uart1_put_number((int) ptr->next);
+        uart1_put_hex((int) ptr->next);
         uart1_put_string("\n\r");
     }
 
     for (i = 0; i < NUM_PROCS; ++i) {
         uart1_put_string("print_memory: proc_");
         uart1_put_number(i);
-        uart1_put_string("has SP ");
-        uart1_put_number((int) gp_pcbs[i]->sp);
+        uart1_put_string(" has SP ");
+        uart1_put_hex((int) gp_pcbs[i]->sp);
         uart1_put_string("\n\r");
     }
 
@@ -129,13 +129,10 @@ void *k_request_memory_block(void) {
         is_init = 1;
     }
 
-#if DEBUG
-    //print_memory();
-#endif // DEBUG
+    // print_memory();
 
     while (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
         gp_current_process->state = BLOCKED_ON_MEMORY;
-
         k_release_processor();
     }
 

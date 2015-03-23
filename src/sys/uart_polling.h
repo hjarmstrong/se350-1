@@ -32,11 +32,13 @@
 #define uart1_put_char(c)   uart_put_char(1,c)
 #define uart1_put_string(s) uart_put_string(1,s)
 #define uart1_put_number(n) uart_put_number(1,n)
+#define uart1_put_hex(n) uart_put_hex(1,n)
 
 int uart_init(int n_uart);      /* initialize the n_uart       */
 int uart_get_char(int n_uart);  /* read a char from the n_uart */
 int uart_put_char(int n_uart, unsigned char c);   /* write a char   to n_uart */
 int uart_put_string(int n_uart, const char *s);/* write a string to n_uart */
 int uart_put_number(int n_uart, int);
+int uart_put_hex(int n_uart, int);
 
 #endif /* ! UART_POLLING_H_ */

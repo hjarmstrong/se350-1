@@ -4,7 +4,7 @@
 
 #include "../core/process.h"
 
-#define MANY_MEMORY_BLOCKS 120 //should be more than 1/2 the available memory, but not all of it
+#define MANY_MEMORY_BLOCKS 50 //should be more than 1/2 the available memory, but not all of it
 #define NUM_TESTS 5
 
 PROC_INIT g_test_procs[NUM_TEST_PROCS];

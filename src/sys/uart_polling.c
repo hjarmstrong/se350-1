@@ -129,9 +129,29 @@ int uart_put_number(int n_uart, int num) {
     char stack[20] = {0};
     int i = 0;
     int j = 0;
-    while (num) {
+    do {
         stack[i] = '0' + (num % 10);
         num /= 10;
+        ++i;
+    } while(num);
+    for (j = i - 1; j >= 0; --j) {
+        uart_put_char(n_uart, stack[j]);
+    }
+    return 0;
+}
+
+int uart_put_hex(int n_uart, int num) {
+    char stack[20] = {0};
+    int i = 0;
+    int j = 0;
+    uart_put_string(n_uart, "0x");
+    while (num) {
+        if (num % 0x10 > 9) {
+            stack[i] = 'A' + (num % 0x10) - 10;
+        } else {
+            stack[i] = '0' + (num % 0x10);
+        }
+        num /= 0x10;
         ++i;
     }
     for (j = i - 1; j >= 0; --j) {

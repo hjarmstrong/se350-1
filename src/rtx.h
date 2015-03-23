@@ -91,7 +91,7 @@ typedef unsigned int U32;
 /**
  * Cheap person's assert.
  */
-#define ASSERT(x) while(!(x));
+#define ASSERT(x) if (!(x)) { __disable_irq(); while(1); }
 
 
 /*---- Section 2.1 -- Memory Management -------------------------------------*/

@@ -15,7 +15,7 @@ typedef struct ListNode {
     struct ListNode *next;
     struct ListNode *prev;
     U8 count;
-    void *data;
+    void *data[1];
 } ListNode;
 
 // Maximum number of elements in ListNode.
@@ -42,9 +42,9 @@ ListNode *list_node_new(List *l) {
  */
 List list_new(int is_kernel) {
     List l;
+    l.is_kernel = is_kernel;
     l.first = list_node_new(&l);
     l.last = l.first;
-    l.is_kernel = is_kernel;
     return l;
 }
 
@@ -61,7 +61,7 @@ void list_push(List *list, void *data) {
     }
     ++list->last->count;
 
-    (&list->last->data)[list->last->count - 1] = data;
+    list->last->data[list->last->count - 1] = data;
 }
 
 /**
@@ -89,7 +89,7 @@ void list_pop(List *list) {
  */
 void *list_back(List *list) {
     ListNode *last = list->last;
-    return (&last->data)[last->count - 1];
+    return last->data[last->count - 1];
 }
 
 /**
@@ -102,7 +102,7 @@ void list_shift(List *list) {
     --first->count;
 
     for (i = 0; i < first->count; ++i) {
-        (&first->data)[i] = (&first->data)[i + 1];
+        first->data[i] = first->data[i + 1];
     }
 
     if (!first->count) {
@@ -124,7 +124,7 @@ void list_shift(List *list) {
  */
 void *list_front(List *list) {
     ListNode *first = list->first;
-    return (&first->data)[0];
+    return first->data[0];
 }
 
 /**
@@ -141,7 +141,7 @@ void print_list(List *list) {
 
     if (list->first) {
         for (i = 0; i < list->first->count; ++i) {
-            uart1_put_char(((PCB *)(&list->first->data)[i])->pid + '0');
+            uart1_put_char(((PCB *)list->first->data[i])->pid + '0');
         }
     }
     uart1_put_string("\n\r");
