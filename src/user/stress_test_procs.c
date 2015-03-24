@@ -6,7 +6,7 @@
 
 #include "stress_test_procs.h"
 
-#define TEN_SECONDS 5000
+#define TEN_SECONDS 10000
 
 #define QUEUE_SIZE 200
 
