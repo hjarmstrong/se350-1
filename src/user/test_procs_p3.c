@@ -65,10 +65,10 @@ void proc1(void) {
         msg = receive_message(&sender);
         test_results[sender - 1] = msg->mtext[0];
 
-			  release_memory_block(msg);
+        release_memory_block(msg);
     }
 
-		for (i = 1; i <= NUM_TESTS; ++i) {
+	for (i = 1; i <= NUM_TESTS; ++i) {
         crt_send_string("G007_test: test ");
         crt_send_char(i + char_offset);
         if (test_results[i - 1] == TEST_SUCCESS) {

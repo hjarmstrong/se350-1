@@ -16,8 +16,7 @@ void proc_a(void) {
     strncpy(kcd_reg->mtext, "Z", 2);
     send_message(PID_KCD, kcd_reg);//register to handle %Z commands
     
-    while(1){
-        break; // REMOVE ME
+    while(1) {
         p = receive_message(&sender);
         if (!strncmp(p->mtext, "Z", 1)){//if the message contains the %Z command
             release_memory_block(p);
