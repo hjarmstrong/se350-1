@@ -22,7 +22,10 @@ msg_metadata *reserve_message_metadata(void *message_envelope) {
 int k_send_message(int destination_proc_id, void *message_envelope) {
     PCB *receiving_proc;
     msg_metadata *metadata = reserve_message_metadata(message_envelope);
-  
+    if (metadata == NULL) {
+        return RTX_ERR;
+    }
+    
     if (message_envelope == NULL) {
         uart1_put_string("k_send_message is NULL. Bad!\n");
         return RTX_ERR;
@@ -56,9 +59,10 @@ int k_send_message(int destination_proc_id, void *message_envelope) {
 
 int k_delayed_send(int destination_proc_id, void *message_envelope, int delay) {
     msg_metadata *metadata = reserve_message_metadata(message_envelope);
-    if (message_envelope == (void *)0xFFFFFFFF) {
-        uart_put_string(0,"HI\r\n\r");
+    if (metadata == NULL) {
+        return RTX_ERR;
     }
+
     if (message_envelope == NULL) {
         uart1_put_string("k_send_message is NULL. Bad!\n");
         return RTX_ERR;
@@ -72,8 +76,6 @@ int k_delayed_send(int destination_proc_id, void *message_envelope, int delay) {
   
     if (g_delayed_messages_count == (BLOCK_SIZE / sizeof(void *))) {
         // Overflow is... unlikely.
-        // If needed, we discard old messages.
-        g_delayed_messages_count = 0;
         ASSERT(0)
     }
     g_delayed_messages[g_delayed_messages_count++] = message_envelope;
@@ -108,7 +110,6 @@ void *k_receive_message(int *sender_id) { // blocks
     if (map_is_in(&metadata_map, env)) {
         map_remove(&metadata_map, env); // map is used in delayed send. no-op if not in map
     }
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     return env;
 }
 

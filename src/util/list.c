@@ -30,12 +30,10 @@ typedef struct ListNode {
 ListNode *list_node_new(List *l) {
     ListNode *node = (ListNode *) l->is_kernel ? k_request_memory_block() : request_memory_block();
 
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     node->next = NULL;
     node->prev = NULL;
     node->count = 0;
 
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     return node;
 }
 
@@ -44,11 +42,9 @@ ListNode *list_node_new(List *l) {
  */
 List list_new(int is_kernel) {
     List l;
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     l.is_kernel = is_kernel;
     l.first = list_node_new(&l);
     l.last = l.first;
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     return l;
 }
 
@@ -56,7 +52,6 @@ List list_new(int is_kernel) {
  * Adds a node to the end of a linked list.
  */
 void list_push(List *list, void *data) {
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     if (list->last->count == LIST_BUCKET_SIZE) {
         ListNode *new_node = list_node_new(list);
 
@@ -67,7 +62,6 @@ void list_push(List *list, void *data) {
     ++list->last->count;
 
     list->last->data[list->last->count - 1] = data;
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
 }
 
 /**
@@ -75,7 +69,6 @@ void list_push(List *list, void *data) {
  */
 void list_pop(List *list) {
     ListNode *last = list->last;
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
 
     --last->count;
     if (!last->count) {
@@ -89,7 +82,6 @@ void list_pop(List *list) {
             }
         }
     }
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
 }
 
 /**
@@ -97,7 +89,6 @@ void list_pop(List *list) {
  */
 void *list_back(List *list) {
     ListNode *last = list->last;
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     return last->data[last->count - 1];
 }
 
@@ -107,7 +98,6 @@ void *list_back(List *list) {
 void list_shift(List *list) {
     ListNode *first = list->first;
     int i;
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
 
     --first->count;
 
@@ -135,7 +125,6 @@ void list_shift(List *list) {
  */
 void *list_front(List *list) {
     ListNode *first = list->first;
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     return first->data[0];
 }
 
@@ -143,7 +132,6 @@ void *list_front(List *list) {
  * Returns 1 if list is empty, 0 otherwise.
  */
 int list_empty(List *list) {
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     return list->last->count == 0;
 }
 
