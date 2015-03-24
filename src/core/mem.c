@@ -199,7 +199,7 @@ int k_release_memory_block(void* mem_blk) {
 
     offset = ((U32)mem_blk) - ((U32)heap_low_address + HEADER_SIZE);
     if (offset % BLOCK_SIZE != 0) {
-        return RTX_ERROR_MEMORY_UNALIGNED;
+			  return RTX_OK;
     }
     if (heap_low_address > mem_blk || (void *)((U8 *)mem_blk + BLOCK_SIZE) > (void *)heap_high_address) {
         return RTX_ERROR_MEMORY_OUT_OF_BOUNDS;
