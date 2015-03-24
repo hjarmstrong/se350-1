@@ -74,7 +74,6 @@ void proc_c(void){
                 p->mtype = DEFAULT;//specification says we need to use p
                 strncpy(p->mtext, "Process C\r\n", 12);
                 send_message(PID_CRT, p);
-                print_memory();
 
                 wait->mtype = WAKEUP10;
                 sender = delayed_send(PID_C, wait, TEN_SECONDS);//hibernate for 10 sec

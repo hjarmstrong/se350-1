@@ -2,6 +2,7 @@
 #include "../rtx.h"
 #include "uart.h"
 
+#include "../core/mem.h"
 #include "../core/process.h"
 #include "../core/scheduler.h"
 #include "../sys/uart.h"
@@ -217,6 +218,8 @@ static void debug_hotkeys(char key) {
 				}
 				uart1_put_string(display_buffer);
 				cls();
+        } else if (!strncmp(&key, "$", 1)) {
+                print_memory();
 		}
 }
 #endif // _DEBUG_HOTKEYS
