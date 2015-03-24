@@ -25,6 +25,7 @@ void *map_get(Map *map, void *key) {
 
 int map_is_in(Map *map, void *key) {
     int i, j;
+    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     ASSERT(!!key)
     for (i = 0; i < MAX_MAP_BLOCKS; ++i) {
         if (!map->blocks[i]) {
@@ -32,10 +33,12 @@ int map_is_in(Map *map, void *key) {
         }
         for (j = 0; j < MAX_MAP_ELEMENTS_PER_BLOCK; ++j) {
             if (map->blocks[i][j].key == key) {
+                ASSERT(*((int *)0x10001268) != 0xdeadbeef)
                 return 1;
             }
         }
     }
+    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     return 0;
 }
 
@@ -44,6 +47,8 @@ void *map_reserve(Map *map, void *key) {
     int first_free_i = -1;
     int first_free_j = -1;
     ASSERT(!!key)
+    ASSERT(key != (void*) 0xDEADBEEF)
+    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     for (i = 0; i < MAX_MAP_BLOCKS; ++i) {
         if (!map->blocks[i]) {
             if (first_free_i != -1) {
@@ -57,6 +62,7 @@ void *map_reserve(Map *map, void *key) {
 
         for (j = 0; j < MAX_MAP_ELEMENTS_PER_BLOCK; ++j) {
             if (map->blocks[i][j].key == key) {
+    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
                 return map->blocks[i][j].value;
             } else if (first_free_i == -1 && !map->blocks[i][j].key) {
                 first_free_i = i;
@@ -69,11 +75,13 @@ void *map_reserve(Map *map, void *key) {
         map->blocks[first_free_i][first_free_j].value[i] = 0;
     }
     map->blocks[first_free_i][first_free_j].key = key;
+    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     return map->blocks[first_free_i][first_free_j].value;
 }
 
 void map_remove(Map *map, void *key) {
     int i, j;
+    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     for (i = 0; i < MAX_MAP_BLOCKS; ++i) {
         if (!map->blocks[i]) {
             continue;
@@ -85,4 +93,5 @@ void map_remove(Map *map, void *key) {
             }
         }
     }
+    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
 }

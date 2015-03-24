@@ -9,7 +9,7 @@
 void proc_a(void) {
     msgbuf *kcd_reg = request_memory_block();
     int num = 0;
-    msgbuf *p = request_memory_block();
+    msgbuf *p = NULL;
     int sender = 1;
     
     kcd_reg->mtype = KCD_REG;
@@ -17,6 +17,7 @@ void proc_a(void) {
     send_message(PID_KCD, kcd_reg);//register to handle %Z commands
     
     while(1){
+        break; // REMOVE ME
         p = receive_message(&sender);
         if (!strncmp(p->mtext, "Z", 1)){//if the message contains the %Z command
             release_memory_block(p);
@@ -46,11 +47,13 @@ void proc_b(void){//passes a message from A to C
 }
 
 void proc_c(void){
-    msgbuf *p = request_memory_block();
+    msgbuf *p = NULL;
     int p_data_int;
     msgbuf *wait;
-    List queue = list_new(IS_USERSPACE);
+    List queue;
     int sender;
+        ASSERT(*((int *)0x10001268) != 0xdeadbeef)
+queue =    list_new(IS_USERSPACE);
     while(1){
         if (list_empty(&queue)){
             p = receive_message(&sender);
@@ -61,8 +64,8 @@ void proc_c(void){
         if (p->mtype == COUNT_REPORT){
             p_data_int = c_string_to_int(p->mtext);
             if (p_data_int % 20 == 0) {
-                p->mtype = CALLER_MANAGED_PRINT;//specification says we need to use p
-                strncpy(p->mtext, "Process C", 10);
+                p->mtype = DEFAULT;//specification says we need to use p
+                strncpy(p->mtext, "Process C\r\n", 12);
                 send_message(PID_CRT, p);
                 
                 wait = request_memory_block();
@@ -71,14 +74,16 @@ void proc_c(void){
                 while(1){
                     p = receive_message(&sender); //block and let other processes execute
                     if (p->mtype == WAKEUP10){
+                        release_memory_block(p);
                         break;
                     } else {
                         list_push(&queue, p);
                     }
                 }
             }
+        } else {
+            release_memory_block(p);
         }
-        release_memory_block(p);
         release_processor();
     }
 }

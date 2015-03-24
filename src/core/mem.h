@@ -10,6 +10,7 @@
 /*---- Types ----------------------------------------------------------------*/
 
 typedef struct MemNode {
+    U32 deadbeef;
     struct MemNode *next;
 } MemNode;
 

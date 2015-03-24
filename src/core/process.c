@@ -45,7 +45,7 @@ void k_process_init() {
     g_proc_table[procIdx].m_priority = PNULL;
 
     g_proc_table[++procIdx].m_pid = PID_KCD; 
-    g_proc_table[procIdx].m_stack_size = 0x2000;
+    g_proc_table[procIdx].m_stack_size = STACK_SIZE;
     g_proc_table[procIdx].mpf_start_pc = &kcd_proc;
     g_proc_table[procIdx].m_priority = HIGH;
 
@@ -130,7 +130,9 @@ void k_process_init() {
 
     // Initialize all process message queues (requires memory management)
     for (i = 0; i < NUM_PROCS; ++i) {
+        ASSERT(*((int *)0x10001268) != 0xdeadbeef)
         gp_pcbs[i]->msg_queue = list_new(IS_KERNEL);
+        ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     }
 }
 
@@ -183,8 +185,10 @@ int k_process_switch(PCB *p_pcb_old) {
 /**
  * If this function calls k_process_switch, irq is disabled first
  */
-int k_release_processor(void) {    
+int k_release_processor(void) {
     PCB *p_pcb_old = gp_current_process;
+    
+    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
 
     __disable_irq();
     k_enqueue_process(p_pcb_old->pid);

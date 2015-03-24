@@ -145,7 +145,7 @@ int uart_put_hex(int n_uart, int num) {
     int i = 0;
     int j = 0;
     uart_put_string(n_uart, "0x");
-    while (num) {
+    do {
         if (num % 0x10 > 9) {
             stack[i] = 'A' + (num % 0x10) - 10;
         } else {
@@ -153,7 +153,7 @@ int uart_put_hex(int n_uart, int num) {
         }
         num /= 0x10;
         ++i;
-    }
+    } while (num);
     for (j = i - 1; j >= 0; --j) {
         uart_put_char(n_uart, stack[j]);
     }

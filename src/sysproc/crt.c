@@ -33,7 +33,7 @@ void crt_send_char(char c) {
 void crt_send_string(const char* input) {
     msgbuf *buf = request_memory_block();
     buf->mtype = DEFAULT;
-    strncpy(buf->mtext, (const char*) input, get_output_buffer_size());
+    strncpy(buf->mtext, (const char*) input, 0x30);
     buf->mtext[get_output_buffer_size()] = 0;
     send_message(PID_CRT, buf);
 }

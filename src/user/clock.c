@@ -66,7 +66,7 @@ static void tick() {
 void clock_proc() {
 	  // 0xffffffff is a number that is unlikely to be used as a message
 	  // and out of range and will hard-fault if written to
-    void *clock_msg = (void *) 0xffffffff; 
+    void *clock_msg = (void *) 0xFFFFFFFF; 
     int recipient = -1;
     msgbuf *kcd_reg = request_memory_block();
     msgbuf *received = NULL;
