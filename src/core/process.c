@@ -130,9 +130,9 @@ void k_process_init() {
 
     // Initialize all process message queues (requires memory management)
     for (i = 0; i < NUM_PROCS; ++i) {
-        ASSERT(*((int *)0x10001268) != 0xdeadbeef)
+
         gp_pcbs[i]->msg_queue = list_new(IS_KERNEL);
-        ASSERT(*((int *)0x10001268) != 0xdeadbeef)
+
     }
 }
 
@@ -188,7 +188,7 @@ int k_process_switch(PCB *p_pcb_old) {
 int k_release_processor(void) {
     PCB *p_pcb_old = gp_current_process;
     
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
+
 
     __disable_irq();
     k_enqueue_process(p_pcb_old->pid);

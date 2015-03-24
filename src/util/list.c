@@ -117,7 +117,7 @@ void list_shift(List *list) {
             }
         }
     }
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
+
 }
 
 /**

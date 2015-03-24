@@ -3,7 +3,7 @@
 
 void strncpy(char *destination, const char *source, int n) {
     int i;
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
+
     for (i = 0; source[i] && i < n; ++i) {
         destination[i] = source[i];
     }
@@ -11,7 +11,7 @@ void strncpy(char *destination, const char *source, int n) {
     for (; i < n; ++i) {
         destination[i] = 0;
     }
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
+
 }
 
 int strlen(const char *str) {

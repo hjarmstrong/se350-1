@@ -46,7 +46,7 @@ void print_memory() {
         uart1_put_string(is_free ? "free" : "res.");
         uart1_put_string(") -> ");
         uart1_put_hex((int) ptr->next);
-        ASSERT(ptr->deadbeef == 0xdeadbeef);
+
         uart1_put_string("\n\r");
         if (ptr == (void*) 0x100011E4) {
             uart1_put_string("!");
@@ -123,21 +123,18 @@ void *k_request_memory_block(void) {
     MemNode *prev = NULL;
     MemNode *ptr = NULL;
 
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
     if (!is_init) {
         root = (void *)(((U8 *)heap_high_address) - HEADER_SIZE);
         root->next = heap_low_address;
-        root->deadbeef = 0xdeadbeef;
+
         is_init = 1;
     }
-
-    // print_memory();
 
     while (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {
         gp_current_process->state = BLOCKED_ON_MEMORY;
         k_release_processor();
     }
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
+
 
     __disable_irq();
 
@@ -158,9 +155,9 @@ void *k_request_memory_block(void) {
         // this will overwrite a header with an identical one
         next_blk = (MemNode *)((U8 *)mem_blk + BLOCK_SIZE);
         next_blk->next = ptr->next;
-        next_blk->deadbeef = 0xdeadbeef;
+
         ptr->next = next_blk;
-        ptr->deadbeef = 0xdeadbeef;
+
     } else if (ptr->next - ptr < BLOCK_SIZE + HEADER_SIZE) {
         // merge nodes
         // block contains two destroyable headers
@@ -171,12 +168,11 @@ void *k_request_memory_block(void) {
         } else {
             prev->next = ptr->next->next;
         }
-        prev->deadbeef = 0xdeadbeef;
-        ASSERT(ptr->next->deadbeef == 0xdeadbeef);
+
+
     } else {
         // expand a node
         mem_blk = ((U8 *)ptr->next) + HEADER_SIZE;
-        ASSERT(ptr->deadbeef == 0xdeadbeef);
 
         next_blk = (MemNode *)((U8 *)mem_blk + BLOCK_SIZE);
         if (ptr->next == heap_low_address) {
@@ -184,16 +180,12 @@ void *k_request_memory_block(void) {
         } else {
             next_blk->next = ptr->next->next;
         }
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
-        next_blk->deadbeef = 0xdeadbeef;
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
+
         ptr->next = next_blk;
-        ptr->deadbeef = 0xdeadbeef;
     }
 
     __enable_irq();
-    ASSERT(mem_blk != (void*) 0xDEADBEEF)
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
+
     return mem_blk;
 }
 
@@ -204,7 +196,6 @@ int k_release_memory_block(void* mem_blk) {
     MemNode *next_blk = NULL;
     MemNode *prev = NULL;
     MemNode *ptr = NULL;
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
 
     offset = ((U32)mem_blk) - ((U32)heap_low_address + HEADER_SIZE);
     if (offset % BLOCK_SIZE != 0) {
@@ -235,13 +226,13 @@ int k_release_memory_block(void* mem_blk) {
             if (ptr->next == heap_low_address) {
                 // block at start of allocatable memory
                 prev->next = ptr->next;
-                prev->deadbeef = 0xdeadbeef;
+
             } else {
                 // block is anywhere else
                 // this should completely remove the entire block
                 // and force the pointers to skip it
                 prev->next = ptr->next->next;
-                prev->deadbeef = 0xdeadbeef;
+
             }
         } else {
             // at start of block
@@ -253,17 +244,17 @@ int k_release_memory_block(void* mem_blk) {
                 // block is anywhere else
                 next_blk->next = ptr->next->next;
             }
-            next_blk->deadbeef = 0xdeadbeef;
+
             ptr->next = next_blk;
-            ptr->deadbeef = 0xdeadbeef;
+
         }
     } else if (mem_blk == ((U8 *)ptr) - BLOCK_SIZE) {
         // at end of block
         next_blk = (MemNode *)(((U8 *)ptr) - BLOCK_SIZE);
         next_blk->next = ptr->next;
-        next_blk->deadbeef = 0xdeadbeef;
+
         prev->next = next_blk;
-        prev->deadbeef = 0xdeadbeef;
+
     } else {
         // TODO: additional validation
         // We should verify that the address to-be-freed is an address
@@ -273,18 +264,16 @@ int k_release_memory_block(void* mem_blk) {
         // allocated left of removed
         next_blk = mem_blk;
         next_blk->next = ptr->next;
-        next_blk->deadbeef = 0xdeadbeef;
+
 
         // non-allocated (removed block)
         middle_blk = (MemNode *)(((U8 *)mem_blk) + BLOCK_SIZE - HEADER_SIZE);
         middle_blk->next = next_blk;
-        middle_blk->deadbeef = 0xdeadbeef;
+
 
         // start of allocated chain
         ptr->next = middle_blk;
-        ptr->deadbeef = 0xdeadbeef;
     }
-    ASSERT(*((int *)0x10001268) != 0xdeadbeef)
 
     __enable_irq();
 

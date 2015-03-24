@@ -12,7 +12,6 @@
 #include "../sys/uart_polling.h"
 
 int main() {
-    *((int *)0x10001268) = 0;
     SystemInit();
     __disable_irq();
     uart1_init();     // polling
