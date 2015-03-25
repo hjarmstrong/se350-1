@@ -14,6 +14,7 @@
 extern U32 Image$$RW_IRAM1$$ZI$$Limit;
 
 MemNode *root;
+extern msgbuf *gp_msgBuffer;
 
 void *heap_high_address;
 void *heap_low_address;
@@ -128,6 +129,13 @@ void *k_request_memory_block(void) {
         root->next = heap_low_address;
 
         is_init = 1;
+    }
+    
+    if (!gp_msgBuffer) {
+        // This message buffer is used by the KCD, and is thus extremely high priority.
+        // Make sure the KCD has memory available to it before giving it away to another process.
+        gp_msgBuffer = (void *) 0xFFFFFFFF;
+        gp_msgBuffer = k_request_memory_block();
     }
 
     while (((U8 *)root) - ((U8 *)root->next) < BLOCK_SIZE && root->next->next == heap_low_address) {

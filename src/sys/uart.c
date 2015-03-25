@@ -20,6 +20,7 @@ U8 out_index;
 static LPC_UART_TypeDef *pUart;
 static volatile int gp_ready = 1;
 static msgbuf *gp_echoBuffer = NULL;
+msgbuf *gp_msgBuffer = NULL;
 
 U32 uart_irq_init(U32 n_uart) {
     gp_input_buffer = request_memory_block();
@@ -228,7 +229,6 @@ void c_UART0_IRQ_Handler(void) {
     uint8_t IIR_IntId;        // Interrupt ID from IIR 
     char input_character, output_character;    
     LPC_UART_TypeDef *pUart = (LPC_UART_TypeDef *)LPC_UART0;
-    msgbuf *msg_envelope;
 
     /* Reading IIR automatically acknowledges the interrupt */
     IIR_IntId = (pUart->IIR) >> 1 ; // skip pending bit in IIR 
@@ -255,12 +255,14 @@ void c_UART0_IRQ_Handler(void) {
          
          // Invoke KCD
          if (input_character == '\r' || input_character == '\n' || get_input_buffer_size() == gp_buffer_index) {
+             while (!gp_msgBuffer || gp_msgBuffer == (void *) 0xFFFFFFFF) { // msg block is pending.
+                 k_release_processor();
+             }
              // message envelope should contain the input buffer
-             msg_envelope = k_request_memory_block();
-             msg_envelope->mtype = DEFAULT;
-             strncpy(msg_envelope->mtext, gp_input_buffer, gp_buffer_index);
-             msg_envelope->mtext[gp_buffer_index] = 0;
-             k_send_message(PID_KCD, msg_envelope);
+             gp_msgBuffer->mtype = DEFAULT;
+             strncpy(gp_msgBuffer->mtext, gp_input_buffer, gp_buffer_index);
+             gp_msgBuffer->mtext[gp_buffer_index] = 0;
+             k_send_message(PID_KCD, gp_msgBuffer);
              gp_buffer_index = 0;
          } else {
              gp_input_buffer[gp_buffer_index] = input_character;

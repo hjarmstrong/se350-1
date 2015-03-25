@@ -10,4 +10,9 @@ int get_input_buffer_size(void);
 int get_output_buffer_size(void);
 void crt_write_output_buffer(const char*);
 
+typedef struct uart_msgbuf {
+    int mtype;
+    char mtext[64];
+} uart_msgbuf;
+
 #endif // UART_H

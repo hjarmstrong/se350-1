@@ -24,6 +24,10 @@ void setpri_proc() {
             read_whitespace(&str); // Accept spaces after command
             if (pid == INVALID_NUMBER || priority == INVALID_NUMBER || str[0] != '\0') {
                 crt_send_string("%C: could not parse command.\r\nUsage: %C <pid> <priority>\r\n");
+            } else if (pid > MAX_PID) {
+                crt_send_string("%C: Invalid PID.\r\nUsage: %C <pid> <priority>\r\n");
+            } else if (priority >= PNULL) {
+                crt_send_string("%C: Invalid priority.\r\nUsage: %C <pid> <priority>\r\n");
             } else {
                 set_process_priority(pid, priority);
             }

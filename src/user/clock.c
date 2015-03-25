@@ -15,10 +15,18 @@ static int hours = 0;
 #define CLOCK_BUFFER_SIZE 10
 
 static char display_buffer[CLOCK_BUFFER_SIZE];
+static msgbuf *gp_disBuf = NULL;
+
+void crt_caller_managed_send_string(const char* input) {
+    gp_disBuf->mtype = CALLER_MANAGED_PRINT;
+    strncpy(gp_disBuf->mtext, (const char*) input, 64);
+    gp_disBuf->mtext[64] = 0;
+    send_message(PID_CRT, gp_disBuf);
+}
 
 static void cls() {
     strncpy(display_buffer, "\r\n", CLOCK_BUFFER_SIZE);
-    crt_send_string(display_buffer);
+    crt_caller_managed_send_string(display_buffer);
 }
 
 static void display() {
@@ -32,7 +40,7 @@ static void display() {
     display_buffer[6] = (seconds/10) + '0';
     display_buffer[7] = (seconds%10) + '0';
 
-    crt_send_string(display_buffer);
+    crt_caller_managed_send_string(display_buffer);
 }
 
 static void reset() {
@@ -75,6 +83,7 @@ void clock_proc() {
     kcd_reg->mtype = KCD_REG;
     strncpy(kcd_reg->mtext, "W", 2);
     send_message(PID_KCD, kcd_reg);
+    gp_disBuf = request_memory_block();
 
     delayed_send(PID_CLOCK, clock_msg, ONE_SECOND);
     while (1) {
@@ -93,7 +102,7 @@ void clock_proc() {
                 len = strlen(received->mtext);
                 enabled = 0;
                 if (len != 11) {
-                    crt_send_string("%WS: invalid format.\r\n");
+                    crt_caller_managed_send_string("%WS: invalid format.\r\n");
                 } else {
                     hours = (received->mtext[3] - '0')*10;
                     hours += (received->mtext[4] - '0');
@@ -102,7 +111,7 @@ void clock_proc() {
                     seconds = (received->mtext[9] - '0')*10;
                     seconds += (received->mtext[10] - '0');
                     if (hours > 24 || mins > 60 || seconds > 60) {
-                        crt_send_string("%WS: invalid format.\r\n");
+                        crt_caller_managed_send_string("%WS: invalid format.\r\n");
                     } else {
                         enabled = 1;
                     }

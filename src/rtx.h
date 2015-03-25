@@ -86,6 +86,8 @@ typedef unsigned int U32;
 #define PID_FIRST_IPROC  PID_TIMER_IPROC
 #define PID_LAST_IPROC   PID_UART_IPROC
 
+#define MAX_PID PID_UART_IPROC
+
 /*---- Assertions -----------------------------------------------------------*/
 
 /**
