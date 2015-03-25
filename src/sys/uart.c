@@ -262,8 +262,8 @@ void c_UART0_IRQ_Handler(void) {
              gp_msgBuffer->mtype = DEFAULT;
              strncpy(gp_msgBuffer->mtext, gp_input_buffer, gp_buffer_index);
              gp_msgBuffer->mtext[gp_buffer_index] = 0;
-             k_send_message(PID_KCD, gp_msgBuffer);
              gp_buffer_index = 0;
+             k_send_message(PID_KCD, gp_msgBuffer);
          } else {
              gp_input_buffer[gp_buffer_index] = input_character;
              gp_buffer_index++;
