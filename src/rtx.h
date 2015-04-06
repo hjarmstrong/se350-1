@@ -20,7 +20,7 @@
 /**
  * Number of processes, not including system process.
  */
-#define NUM_TEST_PROCS 6
+#define NUM_TEST_PROCS 1
 
 
 /*---- Types and Short Forms ------------------------------------------------*/

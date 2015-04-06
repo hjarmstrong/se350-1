@@ -77,7 +77,8 @@ U32 timer_init(U32 n_timer)
      * TC (Timer Counter) toggles b/w 0 and 1 every 12500 PCLKs
      * see MR setting below 
      */
-    pTimer->PR = 12499;  
+    // pTimer->PR = 12499;
+    pTimer->PR = 13;  
 
     /** Step 4.2: MR setting, see section 21.6.7 on pg496 of LPC17xx_UM. */
     pTimer->MR0 = 1;
